@@ -23,7 +23,9 @@ public class Comms extends Thread{
                 System.out.println("Detected new client: Pinging!");
                 out.println("Ping!");
                 String resp = in.readLine();
-                if(resp.equals("Pong!"));
+                if(resp.equals("Pong!")){
+                    System.out.println("Got a pong back!");
+                }
             }
         }
         catch(IOException e)

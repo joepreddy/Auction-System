@@ -32,7 +32,9 @@ public class Client {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
         while(true) {
-            if(in.readLine().equals("Ping!")) {
+            String resp = in.readLine();
+            if(resp.equals("Ping!")) {
+                System.out.println("Got a ping! Sending a pong!");
                 out.println("Pong!");
             }
         }
