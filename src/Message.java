@@ -4,7 +4,7 @@
 public class Message {
 
     private static final String[] messageTypes={"USER_REG_REQ","USER_AUTH_REQ"};
-    private String messageType;
+    public String messageType;
     private String data;
 
     public Message(String messageType, String data) {
