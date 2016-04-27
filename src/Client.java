@@ -18,6 +18,7 @@ public class Client {
     private int clientID;
     Container cont;
     JPanel loginPanel;
+    JPanel registerPanel;
     Boolean connected = false;
 
     public Client() {
@@ -48,25 +49,22 @@ public class Client {
 
     class LoginScreen extends JFrame {
 
-        private JTextField username = new JTextField(40);
-        private JPasswordField password = new JPasswordField(40);
-        private JButton login = new JButton("Login");
-        private JButton register = new JButton("Register");
+
 
         public LoginScreen() {
             super("Auction Login");
             init();
         }
 
+        public void createLoginPanel() {
 
+            JTextField username = new JTextField(40);
+            JPasswordField password = new JPasswordField(40);
+            JButton login = new JButton("Login");
+            JButton register = new JButton("Register");
 
-        public void init() {
             loginPanel = new JPanel();
             loginPanel.setLayout(new GridBagLayout());
-
-            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            //setLayout(new GridBagLayout());
-            cont = getContentPane();
 
             GridBagConstraints gc = new GridBagConstraints();
             gc.fill = GridBagConstraints.HORIZONTAL;
@@ -105,8 +103,9 @@ public class Client {
             buttons.add(register);
             register.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("Open register prompt");
-                    loginPanel.setVisible(false);
+                    cont.remove(loginPanel);
+                    cont.add(registerPanel);
+                    pack();
                 }
             });
 
@@ -114,8 +113,93 @@ public class Client {
             gc.gridy = 3;
             gc.gridwidth = 2;
             loginPanel.add(buttons, gc);
-            cont.add(loginPanel);
+        }
 
+        public void createRegisterPanel() {
+
+            JTextField firstName = new JTextField(20);
+            JTextField lastName = new JTextField(20);
+            JTextField username = new JTextField(20);
+            JPasswordField password = new JPasswordField(20);
+
+            registerPanel = new JPanel();
+            registerPanel.setLayout(new GridBagLayout());
+
+            GridBagConstraints gc = new GridBagConstraints();
+            gc.fill = GridBagConstraints.HORIZONTAL;
+            gc.insets = new Insets(10, 10, 10, 10);
+
+
+
+            gc.fill =GridBagConstraints.HORIZONTAL;
+            gc.gridx = 0;
+            gc.gridy = 0;
+            registerPanel.add(new JLabel("First Name:"), gc);
+
+            gc.gridx = 1;
+            gc.gridy = 0;
+            registerPanel.add(firstName, gc);
+
+            gc.gridx = 2;
+            gc.gridy = 0;
+            registerPanel.add(new JLabel("Last Name:"), gc);
+
+            gc.gridx = 3;
+            gc.gridy = 0;
+            registerPanel.add(lastName, gc);
+
+            gc.gridx = 0;
+            gc.gridy = 1;
+            registerPanel.add(new JLabel("Username:"), gc);
+
+            gc.gridx = 1;
+            gc.gridy = 1;
+            registerPanel.add(username, gc);
+
+            gc.gridx = 2;
+            gc.gridy = 1;
+            registerPanel.add(new JLabel("Password:"), gc);
+
+            gc.gridx = 3;
+            gc.gridy = 1;
+            registerPanel.add(password, gc);
+
+            JPanel buttons = new JPanel();
+            JButton register = new JButton("Register");
+            JButton cancel = new JButton("Cancel");
+
+            register.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+
+                }
+            });
+
+            cancel.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    cont.remove(registerPanel);
+                    cont.add(loginPanel);
+                    pack();
+                }
+            });
+
+            gc.gridx = 1;
+            gc.gridy = 2;
+            gc.gridwidth = 2;
+            buttons.add(register);
+            buttons.add(cancel);
+            registerPanel.add(buttons,gc);
+        }
+
+
+        public void init() {
+
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            createLoginPanel();
+            createRegisterPanel();
+            cont = getContentPane();
+            cont.add(loginPanel);
             setVisible(true);
             pack();
         }
