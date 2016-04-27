@@ -18,13 +18,14 @@ public class Comms extends Thread{
     public void run() {
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream());
+            out = new PrintWriter(socket.getOutputStream(), true);
             while(true) {
-                System.out.println("Detected new client: Pinging!");
+                System.out.println("Detected new client: Establishing Connection!");
                 out.println("Ping!");
                 String resp = in.readLine();
                 if(resp.equals("Pong!")){
-                    System.out.println("Got a pong back!");
+                    System.out.println("Connection Established");
+                    return;
                 }
             }
         }

@@ -17,6 +17,8 @@ public class Client {
     PrintWriter out;
     private int clientID;
     Container cont;
+    JPanel loginPanel;
+    Boolean connected = false;
 
     public Client() {
         LoginScreen login = new LoginScreen();
@@ -32,84 +34,99 @@ public class Client {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
         while(true) {
+            System.out.println("Connecting to server...");
             String resp = in.readLine();
+            //System.out.println(in.readLine());
             if(resp.equals("Ping!")) {
-                System.out.println("Got a ping! Sending a pong!");
+                System.out.println("Connection to server established!");
                 out.println("Pong!");
+                connected = true;
+                return;
             }
         }
     }
 
     class LoginScreen extends JFrame {
 
-            private JTextField username = new JTextField(40);
-            private JPasswordField password = new JPasswordField(40);
-            private JButton login = new JButton("Login");
-            private JButton register = new JButton("Register");
+        private JTextField username = new JTextField(40);
+        private JPasswordField password = new JPasswordField(40);
+        private JButton login = new JButton("Login");
+        private JButton register = new JButton("Register");
 
-            public LoginScreen() {
-                super("Auction Login");
-                init();
-            }
-
-            public void init() {
-                setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                setLayout(new GridBagLayout());
-                cont = getContentPane();
-
-                GridBagConstraints gc = new GridBagConstraints();
-                gc.fill = GridBagConstraints.HORIZONTAL;
-                gc.insets = new Insets(10, 10, 10, 10);
+        public LoginScreen() {
+            super("Auction Login");
+            init();
+        }
 
 
-                gc.gridx = 0;
-                gc.gridy = 0;
-                gc.gridwidth = 2;
-                cont.add(new JLabel("XYZ Auction System"), gc);
 
-                gc.gridx = 0;
-                gc.gridy = 1;
-                gc.gridwidth = 1;
-                cont.add(new JLabel("Username:"), gc);
+        public void init() {
+            loginPanel = new JPanel();
+            loginPanel.setLayout(new GridBagLayout());
 
-                gc.gridx = 1;
-                gc.gridy = 1;
-                cont.add(username, gc);
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            //setLayout(new GridBagLayout());
+            cont = getContentPane();
 
-                gc.gridx = 0;
-                gc.gridy = 2;
-                cont.add(new JLabel("Password:"), gc);
+            GridBagConstraints gc = new GridBagConstraints();
+            gc.fill = GridBagConstraints.HORIZONTAL;
+            gc.insets = new Insets(10, 10, 10, 10);
 
-                gc.gridx = 1;
-                gc.gridy = 2;
-                cont.add(password, gc);
+            gc.gridx = 0;
+            gc.gridy = 0;
+            gc.gridwidth = 2;
+            loginPanel.add(new JLabel("XYZ Auction System"), gc);
 
-                JPanel buttons = new JPanel();
-                buttons.setLayout(new FlowLayout());
-                buttons.add(login);
-                login.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        System.out.println("Send message data: " + username.getText() + " " + password.getPassword());
-                    }
-                });
-                buttons.add(register);
-                register.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        System.out.println("Open register prompt");
-                    }
-                });
+            gc.gridx = 0;
+            gc.gridy = 1;
+            gc.gridwidth = 1;
+            loginPanel.add(new JLabel("Username:"), gc);
 
-                gc.gridx = 0;
-                gc.gridy = 3;
-                gc.gridwidth = 2;
-                cont.add(buttons, gc);
+            gc.gridx = 1;
+            gc.gridy = 1;
+            loginPanel.add(username, gc);
 
-                setVisible(true);
-                pack();
-            }
+            gc.gridx = 0;
+            gc.gridy = 2;
+            loginPanel.add(new JLabel("Password:"), gc);
 
+            gc.gridx = 1;
+            gc.gridy = 2;
+            loginPanel.add(password, gc);
+
+            JPanel buttons = new JPanel();
+            buttons.setLayout(new FlowLayout());
+            buttons.add(login);
+            login.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    loginUser(username.getText(), password.getPassword());
+                }
+            });
+            buttons.add(register);
+            register.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    System.out.println("Open register prompt");
+                    loginPanel.setVisible(false);
+                }
+            });
+
+            gc.gridx = 0;
+            gc.gridy = 3;
+            gc.gridwidth = 2;
+            loginPanel.add(buttons, gc);
+            cont.add(loginPanel);
+
+            setVisible(true);
+            pack();
+        }
+
+
+        public void loginUser(String username, char[] password) {
 
         }
+
+
+    }
 
     public static void main(String[] args) {
         Client client = new Client();

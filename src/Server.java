@@ -5,8 +5,9 @@ import java.util.HashSet;
 /**
  * Created by Joe on 19/04/2016.
  */
-public class Server{
+public class Server {
 
+    private static HashSet<User> loggedUser = new HashSet<User>();
     private static HashSet<Client> clients = new HashSet<Client>();
     private static ServerSocket listener;
 
@@ -34,6 +35,15 @@ public class Server{
 
     public static void main(String[] args) throws Exception{
         Server server = new Server();
+    }
+
+    public Boolean authenticateUser(Message.UserAuthRequest request) {
+        for(User u : loggedUser) {
+            if(u.getUsername().equals(request.username)) {
+                return false; //User already logged in
+            }
+        }
+        return true;
     }
 
     }

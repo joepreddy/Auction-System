@@ -3,12 +3,14 @@
  */
 public class Message {
 
-    private static final String[] messageTypes={"USER_REG_REQ","USER_AUTH_REQ"};
-    public String messageType;
-    private String data;
 
-    public Message(String messageType, String data) {
-        this.messageType = messageType;
-        this.data = data;
+    class UserAuthRequest extends Message {
+        String username;
+        char[] password;
+
+        public UserAuthRequest(String username, char[] password) {
+            this.username = username;
+            this.password = password;
+        }
     }
 }
