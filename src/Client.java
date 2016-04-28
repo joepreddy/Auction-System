@@ -2,10 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -13,8 +10,9 @@ import java.net.Socket;
  */
 public class Client {
 
-    BufferedReader in;
-    PrintWriter out;
+    //BufferedReader in;
+    ObjectInputStream in;
+    ObjectOutputStream out;
     private int clientID;
     Container cont;
     JPanel loginPanel;
@@ -32,9 +30,12 @@ public class Client {
 
     private void run() throws IOException{
         Socket socket = new Socket("localhost", 1224);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
-        while(true) {
+        //in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out = new ObjectOutputStream(socket.getOutputStream());
+        in = new ObjectInputStream(socket.getInputStream());
+
+
+        /*while(true) {
             System.out.println("Connecting to server...");
             String resp = in.readLine();
             //System.out.println(in.readLine());
@@ -44,6 +45,23 @@ public class Client {
                 connected = true;
                 return;
             }
+        }*/
+
+        while(true) {
+            System.out.println("Connecting to server...");
+            try {
+                Message msg = (Message)in.readObject();
+                if(msg instanceof Message.ConnectionRequest) {
+                    System.out.println("Connection request received");
+                    ((Message.ConnectionRequest) msg).successful = true;
+                    out.writeObject(msg);
+                    return;
+                }
+            }
+            catch (Exception ex) {
+                System.out.println("rip");
+            }
+
         }
     }
 
@@ -56,7 +74,7 @@ public class Client {
             init();
         }
 
-        public void createLoginPanel() {
+        public void createLoginPanel(){
 
             JTextField username = new JTextField(40);
             JPasswordField password = new JPasswordField(40);
@@ -97,7 +115,11 @@ public class Client {
             buttons.add(login);
             login.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    loginUser(username.getText(), password.getPassword());
+                    try {
+                        loginUser(username.getText(), password.getPassword());
+                    } catch(Exception loginException) {
+                        System.out.println(loginException);
+                    }
                 }
             });
             buttons.add(register);
@@ -205,8 +227,8 @@ public class Client {
         }
 
 
-        public void loginUser(String username, char[] password) {
-
+        public void loginUser(String username, char[] password) throws Exception{
+            out.writeObject(new Message().new UserAuthRequest(username, password));
         }
 
 

@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -10,13 +7,15 @@ import java.net.Socket;
 public class Comms extends Thread{
 
     private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
+    //private BufferedReader in;
+    private ObjectInputStream in;
+    //private PrintWriter out;
+    private ObjectOutputStream out;
 
     public Comms(Socket socket) {this.socket = socket;}
 
-    public void run() {
-        try {
+    public void run(){
+       /* try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
             while(true) {
@@ -42,7 +41,50 @@ public class Comms extends Thread{
             {
                 System.out.println(i);
             }
+        }*/
+        try {
+            out = new ObjectOutputStream(socket.getOutputStream());
+            in = new ObjectInputStream((socket.getInputStream()));
+
+            while(true) {
+                System.out.println("Detected new client: Establishing connection!");
+                out.writeObject(new Message().new ConnectionRequest());
+                try {
+                    Message msg = (Message)in.readObject();
+
+
+                    if(msg instanceof Message.ConnectionRequest) {
+                        if (((Message.ConnectionRequest) msg).successful) {
+                            System.out.println("Connected!");
+                            return;
+                        }
+                    }
+                    else if(msg instanceof  Message.UserAuthRequest) {
+                        System.out.println("Received authentication request...");
+                        out.writeObject(Server.authenticateUser((Message.UserAuthRequest)msg));
+                        System.out.println("Response sent...");
+                    }
+                }
+                catch(Exception ex) {
+                    System.out.println("rip");
+                }
+
+
+            }
         }
+        catch(IOException e) {
+            System.out.println(e);
+        }
+        finally {
+            try {
+                socket.close();
+            }
+            catch (Exception exe) {
+                System.out.println(exe);
+            }
+        }
+
+
     }
 
 

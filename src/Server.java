@@ -37,13 +37,13 @@ public class Server {
         Server server = new Server();
     }
 
-    public Boolean authenticateUser(Message.UserAuthRequest request) {
+    public static Message.UserAuthResponse authenticateUser(Message.UserAuthRequest request) {
         for(User u : loggedUser) {
             if(u.getUsername().equals(request.username)) {
-                return false; //User already logged in
+                return new Message().new UserAuthResponse(false, "You're already logged in."); //User already logged in
             }
         }
-        return true;
+        return new Message().new UserAuthResponse(true, "Yay");
     }
 
     }
