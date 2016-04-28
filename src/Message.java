@@ -12,5 +12,6 @@ public class Message {
             this.username = username;
             this.password = password;
         }
+
     }
 }
