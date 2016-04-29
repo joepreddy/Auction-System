@@ -1,7 +1,9 @@
+import java.io.Serializable;
+
 /**
  * Created by Joe on 27/04/2016.
  */
-public class User {
+public class User implements Serializable{
 
     private String firstName;
     private String lastName;
@@ -17,6 +19,14 @@ public class User {
         this.lastName = lastName;
         this.username = username;
         this.password = password;
+    }
+
+    public User(String firstName, String lastName, String username, char[] password, int userID) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.password = password;
+        this.userID = userID;
     }
 
 }

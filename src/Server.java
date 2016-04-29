@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Arrays;
 import java.util.HashSet;
 
 /**
@@ -40,18 +41,33 @@ public class Server {
     public static Message.UserAuthResponse authenticateUser(Message.UserAuthRequest request) {
         for(User u : users) {
             if(u.getUsername().equals(request.username)) {
-                if(u.getPassword().equals(request.password)) {
+                if(Arrays.equals(u.getPassword(), request.password)) {
                     return new Message().new UserAuthResponse(u, true);
                 }
                 else {
                     return new Message().new UserAuthResponse(false, "Incorrect Password!");
                 }
             }
-            else {
-                return new Message().new UserAuthResponse(false, "Unknown User!");
-            }
         }
         return new Message().new UserAuthResponse(false, "Unknown User!");
+    }
+
+    public static Message.UserRegistrationResponse registerUser(Message.UserRegistrationRequest request) {
+        for(User u : users) {
+            if(u.getUsername().equals(request.username)) {
+                return new Message().new UserRegistrationResponse(false, "Username already in use!");
+            }
+        }
+        User user = new User(request.firstName, request.lastName, request.username, request.password, users.size()+1);
+        users.add(user);
+        try {
+            PersistanceLayer.addUser(user);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return new Message().new UserRegistrationResponse(true, user);
+        //return new Message().new UserRegistrationResponse(false, "Unknown Error!");
     }
 
 

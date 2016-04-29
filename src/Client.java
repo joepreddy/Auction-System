@@ -54,9 +54,17 @@ public class Client {
                     }
                     //return;
                 }
+                else if(msg instanceof Message.UserRegistrationResponse) {
+                    if(((Message.UserRegistrationResponse) msg).successful) {
+                        System.out.println("User registered successfully");
+                    }
+                    else {
+                        System.out.println(((Message.UserRegistrationResponse) msg).info);
+                    }
+                }
             }
             catch (Exception ex) {
-                System.out.println("rip");
+                ex.printStackTrace();
             }
 
         }
@@ -190,7 +198,13 @@ public class Client {
             register.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    registrationUserTest();
+                    try {
+                        registerUser(firstName.getText(), lastName.getText(), username.getText(), password.getPassword());
+                    } catch(Exception ex) {
+                        System.out.println(e);
+                    }
+
+
                 }
             });
 
@@ -228,7 +242,7 @@ public class Client {
             out.writeObject(new Message().new UserAuthRequest(username, password));
         }
 
-        public void registrationUserTest() {
+        /*public void registrationUserTest() {
             User user = new User("Jerry", "Jackson", "jj", ("eagh".toCharArray()));
             try {
                 PersistanceLayer.addUser(user);
@@ -236,6 +250,11 @@ public class Client {
                 System.out.println(e);
             }
 
+        }*/
+
+        public void registerUser(String firstName, String lastName, String username, char[] password) throws Exception{
+            System.out.println("Sending registration request...");
+            out.writeObject(new Message().new UserRegistrationRequest(firstName, lastName, username, password));
         }
 
 

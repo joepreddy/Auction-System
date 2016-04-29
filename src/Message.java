@@ -33,6 +33,36 @@ public class Message implements Serializable{
 
     }
 
+    class UserRegistrationRequest extends Message {
+        String firstName;
+        String lastName;
+        String username;
+        char[] password;
+
+        public UserRegistrationRequest(String firstName, String lastName, String username, char[] password) {
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.username = username;
+            this.password = password;
+        }
+    }
+
+    class UserRegistrationResponse extends Message {
+        User user;
+        Boolean successful;
+        String info;
+
+        public UserRegistrationResponse(Boolean successful, User user) {
+            this.successful = successful;
+            this.user = user;
+        }
+
+        public UserRegistrationResponse(Boolean successful, String info) {
+            this.info = info;
+            this.successful = successful;
+        }
+    }
+
     class ConnectionRequest extends Message {
         Boolean successful = false;
     }

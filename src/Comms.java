@@ -67,11 +67,17 @@ public class Comms extends Thread{
                         System.out.println("Response sent...");
                         //return;
                     }
+                    else if(msg instanceof Message.UserRegistrationRequest) {
+                        System.out.println("Registration request recieved");
+                        out.writeObject(Server.registerUser((Message.UserRegistrationRequest)msg));
+                        System.out.println("Sent back reply");
+
+                    }
                     //return;
+                } catch (Exception e){
+                    e.printStackTrace();
                 }
-                catch(Exception ex) {
-                    System.out.println("rip");
-                }
+
 
 
             }
