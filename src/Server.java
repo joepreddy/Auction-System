@@ -7,14 +7,14 @@ import java.util.HashSet;
  */
 public class Server {
 
-    private static HashSet<User> loggedUser = new HashSet<User>();
+    private static HashSet<User> users = new HashSet<User>();
     private static HashSet<Client> clients = new HashSet<Client>();
     private static ServerSocket listener;
 
     public HashSet getClients() {return clients;}
     public Server() throws Exception{
         System.out.println("Starting server...");
-
+        users = PersistanceLayer.loadAllUsers();
         listener = new ServerSocket(1224);
         try {
             while (true) {
@@ -38,12 +38,21 @@ public class Server {
     }
 
     public static Message.UserAuthResponse authenticateUser(Message.UserAuthRequest request) {
-        for(User u : loggedUser) {
+        for(User u : users) {
             if(u.getUsername().equals(request.username)) {
-                return new Message().new UserAuthResponse(false, "You're already logged in."); //User already logged in
+                if(u.getPassword().equals(request.password)) {
+                    return new Message().new UserAuthResponse(u, true);
+                }
+                else {
+                    return new Message().new UserAuthResponse(false, "Incorrect Password!");
+                }
+            }
+            else {
+                return new Message().new UserAuthResponse(false, "Unknown User!");
             }
         }
-        return new Message().new UserAuthResponse(true, "Yay");
+        return new Message().new UserAuthResponse(false, "Unknown User!");
     }
+
 
     }

@@ -18,6 +18,7 @@ public class Client {
     JPanel loginPanel;
     JPanel registerPanel;
     Boolean connected = false;
+    User loggedUser;
 
     public Client() {
         LoginScreen login = new LoginScreen();
@@ -34,28 +35,24 @@ public class Client {
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());
 
-
-        /*while(true) {
-            System.out.println("Connecting to server...");
-            String resp = in.readLine();
-            //System.out.println(in.readLine());
-            if(resp.equals("Ping!")) {
-                System.out.println("Connection to server established!");
-                out.println("Pong!");
-                connected = true;
-                return;
-            }
-        }*/
-
         while(true) {
-            System.out.println("Connecting to server...");
+            //System.out.println("Connecting to server...");
             try {
                 Message msg = (Message)in.readObject();
                 if(msg instanceof Message.ConnectionRequest) {
                     System.out.println("Connection request received");
                     ((Message.ConnectionRequest) msg).successful = true;
                     out.writeObject(msg);
-                    return;
+                    //return;
+                }
+                else if(msg instanceof Message.UserAuthResponse) {
+                    if(((Message.UserAuthResponse) msg).successful) {
+                        System.out.println("Load client!");
+                    }
+                    else {
+                        System.out.println(((Message.UserAuthResponse) msg).info);
+                    }
+                    //return;
                 }
             }
             catch (Exception ex) {
@@ -193,7 +190,7 @@ public class Client {
             register.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-
+                    registrationUserTest();
                 }
             });
 
@@ -229,6 +226,16 @@ public class Client {
 
         public void loginUser(String username, char[] password) throws Exception{
             out.writeObject(new Message().new UserAuthRequest(username, password));
+        }
+
+        public void registrationUserTest() {
+            User user = new User("Jerry", "Jackson", "jj", ("eagh".toCharArray()));
+            try {
+                PersistanceLayer.addUser(user);
+            } catch (Exception e){
+                System.out.println(e);
+            }
+
         }
 
 

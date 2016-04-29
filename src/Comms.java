@@ -11,6 +11,7 @@ public class Comms extends Thread{
     private ObjectInputStream in;
     //private PrintWriter out;
     private ObjectOutputStream out;
+    Boolean connected = false;
 
     public Comms(Socket socket) {this.socket = socket;}
 
@@ -47,23 +48,26 @@ public class Comms extends Thread{
             in = new ObjectInputStream((socket.getInputStream()));
 
             while(true) {
-                System.out.println("Detected new client: Establishing connection!");
-                out.writeObject(new Message().new ConnectionRequest());
+                //System.out.println("Detected new client: Establishing connection!");
+                if(!connected){out.writeObject(new Message().new ConnectionRequest());}
                 try {
                     Message msg = (Message)in.readObject();
-
 
                     if(msg instanceof Message.ConnectionRequest) {
                         if (((Message.ConnectionRequest) msg).successful) {
                             System.out.println("Connected!");
-                            return;
+                            connected = true;
+
                         }
+                        //return;
                     }
                     else if(msg instanceof  Message.UserAuthRequest) {
                         System.out.println("Received authentication request...");
                         out.writeObject(Server.authenticateUser((Message.UserAuthRequest)msg));
                         System.out.println("Response sent...");
+                        //return;
                     }
+                    //return;
                 }
                 catch(Exception ex) {
                     System.out.println("rip");
@@ -72,16 +76,8 @@ public class Comms extends Thread{
 
             }
         }
-        catch(IOException e) {
+        catch(Exception e) {
             System.out.println(e);
-        }
-        finally {
-            try {
-                socket.close();
-            }
-            catch (Exception exe) {
-                System.out.println(exe);
-            }
         }
 
 
