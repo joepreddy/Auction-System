@@ -73,6 +73,11 @@ public class Comms extends Thread{
                         System.out.println("Sent back reply");
 
                     }
+                    else if(msg instanceof Message.ItemRequest) {
+                        System.out.println("Item request received");
+                        out.writeObject(Server.requestItems((Message.ItemRequest)msg));
+                        System.out.println("Item reply sent");
+                    }
                     //return;
                 } catch (Exception e){
                     e.printStackTrace();

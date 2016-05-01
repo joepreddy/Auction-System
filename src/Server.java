@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -10,12 +11,18 @@ public class Server {
 
     private static HashSet<User> users = new HashSet<User>();
     private static HashSet<Client> clients = new HashSet<Client>();
+    private static ArrayList<Item> items = new ArrayList<Item>();
     private static ServerSocket listener;
 
+
+
     public HashSet getClients() {return clients;}
+
+
     public Server() throws Exception{
         System.out.println("Starting server...");
         users = PersistanceLayer.loadAllUsers();
+        items.add(new Item("A thing", "A good thing", "Fashion"));
         listener = new ServerSocket(1224);
         try {
             while (true) {
@@ -68,6 +75,21 @@ public class Server {
 
         return new Message().new UserRegistrationResponse(true, user);
         //return new Message().new UserRegistrationResponse(false, "Unknown Error!");
+    }
+
+    public static Message.ItemRequestResponse requestItems(Message.ItemRequest request) {
+        if(request.category == "All") {
+            return new Message().new ItemRequestResponse(true, items);
+        }
+        else {
+            ArrayList<Item> tempItems = new ArrayList<Item>();
+            for(Item item : items) {
+                if(item.getCategory().equals(request.category)) {
+                    tempItems.add(item);
+                }
+            }
+            return new Message().new ItemRequestResponse(true, tempItems);
+        }
     }
 
 

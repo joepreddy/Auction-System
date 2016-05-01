@@ -10,6 +10,7 @@ public class PersistanceLayer {
 
     private static Gson gson = new Gson();
     private static File users = new File("users.json");
+    private static File items = new File("users.json");
 
     public static void addUser(User user) throws Exception{
         String userData = gson.toJson(user);
@@ -42,6 +43,16 @@ public class PersistanceLayer {
             System.out.println(fe);
         }
         return usersSet;
+    }
+
+    public static void addItem(Item item) throws Exception {
+        String itemData = gson.toJson(item);
+        System.out.println(itemData);
+
+        FileWriter fw = new FileWriter(items, true);
+        BufferedWriter bw = new BufferedWriter(fw);
+        bw.write(itemData+"\n");
+        bw.close();
     }
 
 }

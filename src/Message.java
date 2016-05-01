@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * Created by Joe on 19/04/2016.
@@ -60,6 +61,30 @@ public class Message implements Serializable{
         public UserRegistrationResponse(Boolean successful, String info) {
             this.info = info;
             this.successful = successful;
+        }
+    }
+
+    class ItemRequest extends Message {
+        String category;
+
+        public ItemRequest(String category) {
+            this.category = category;
+        }
+    }
+
+    class ItemRequestResponse extends Message {
+        Boolean successful;
+        String info;
+        ArrayList<Item> items;
+
+        public ItemRequestResponse(Boolean successful, String info) {
+            this.successful = successful;
+            this.info = info;
+        }
+
+        public ItemRequestResponse(Boolean successful, ArrayList<Item> items) {
+            this.successful = successful;
+            this.items = items;
         }
     }
 

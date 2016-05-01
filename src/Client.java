@@ -1,9 +1,12 @@
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * Created by Joe on 19/04/2016.
@@ -14,11 +17,11 @@ public class Client {
     ObjectInputStream in;
     ObjectOutputStream out;
     private int clientID;
-    Container cont;
-    JPanel loginPanel;
-    JPanel registerPanel;
+
     Boolean connected = false;
     User loggedUser;
+
+    ArrayList<Item> currentDispItems;
 
     public Client() {
         LoginScreen login = new LoginScreen();
@@ -62,6 +65,14 @@ public class Client {
                         System.out.println(((Message.UserRegistrationResponse) msg).info);
                     }
                 }
+                else if(msg instanceof Message.ItemRequestResponse) {
+                    if(((Message.ItemRequestResponse)msg).successful) {
+                        currentDispItems = ((Message.ItemRequestResponse) msg).items;
+                    }
+                    else {
+                        System.out.println(((Message.ItemRequestResponse) msg).info);
+                    }
+                }
             }
             catch (Exception ex) {
                 ex.printStackTrace();
@@ -72,6 +83,9 @@ public class Client {
 
     class LoginScreen extends JFrame {
 
+        Container cont;
+        JPanel loginPanel;
+        JPanel registerPanel;
 
 
         public LoginScreen() {
@@ -123,7 +137,7 @@ public class Client {
                     try {
                         loginUser(username.getText(), password.getPassword());
                     } catch(Exception loginException) {
-                        System.out.println(loginException);
+                        loginException.printStackTrace();
                     }
                 }
             });
@@ -240,6 +254,7 @@ public class Client {
 
         public void loginUser(String username, char[] password) throws Exception{
             out.writeObject(new Message().new UserAuthRequest(username, password));
+            MainWindow window = new MainWindow();
         }
 
         /*public void registrationUserTest() {
@@ -257,6 +272,96 @@ public class Client {
             out.writeObject(new Message().new UserRegistrationRequest(firstName, lastName, username, password));
         }
 
+
+    }
+
+    class MainWindow extends JFrame {
+
+        Container cont;
+        JPanel mainFrame = new JPanel();
+
+        JList<String> categories;
+        JList<Item> itemList;
+
+        public MainWindow() {
+            super("XYZ Auction System");
+            init();
+        }
+
+        public void init() {
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            createMainWindow();
+            cont = getContentPane();
+            cont.add(mainFrame);
+            setVisible(true);
+            pack();
+        }
+
+        public void createMainWindow() {
+
+
+            JTabbedPane menu = new JTabbedPane();
+            mainFrame.add(menu);
+
+            JPanel dashboard = new JPanel();
+            dashboard.setPreferredSize(new Dimension(1024, 768));
+            dashboard.setLayout(new GridBagLayout());
+            GridBagConstraints gc = new GridBagConstraints();
+
+
+
+            categories = new JList<String>(Item.getCategories());
+            JScrollPane cat = new JScrollPane(categories);
+            categories.addListSelectionListener(new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    populateList();
+                }
+            });
+            gc.anchor = GridBagConstraints.NORTHWEST;
+            gc.gridx = 0;
+            gc.gridy = 0;
+            dashboard.add(cat, gc);
+
+
+            itemList = new JList();
+            JScrollPane items = new JScrollPane(itemList);
+
+            gc.gridx = 1;
+            gc.gridy = 0;
+            dashboard.add(items, gc);
+            menu.add(dashboard, "Browse");
+
+        }
+
+        public void populateList() {
+            try {
+                out.writeObject(new Message().new ItemRequest(categories.getSelectedValue()));
+                System.out.println("Attempting to get items");
+                itemList.setModel(new ItemListModel(currentDispItems));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        class ItemListModel extends AbstractListModel<Item> {
+
+            public ArrayList<Item> modelItem;
+
+            public ItemListModel(ArrayList<Item> modelItem) {
+                this.modelItem = modelItem;
+            }
+
+            public int getSize() {
+                return modelItem.size();
+            }
+
+            public Item getElementAt(int index) {
+                return modelItem.get(index);
+            }
+
+        }
 
     }
 
