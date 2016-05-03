@@ -1,5 +1,6 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,8 +15,8 @@ public class Item implements Serializable{
     private String category;
     private int sellerID;
     private User seller;
-    private int startTime;
-    private int endTime;
+    private Date startTime;
+    private Date endTime;
     private ArrayList<Bid> bids = new ArrayList<Bid>();
 
     public Item(String title, String description, String category){

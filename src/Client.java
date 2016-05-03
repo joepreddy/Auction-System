@@ -298,10 +298,17 @@ public class Client {
         }
 
         public void createMainWindow() {
-
-
             JTabbedPane menu = new JTabbedPane();
             mainFrame.add(menu);
+            menu.add(createBrowseWindow(), "Browse");
+
+        }
+
+        public JPanel createBrowseWindow() {
+
+
+
+
 
             JPanel dashboard = new JPanel();
             dashboard.setPreferredSize(new Dimension(1024, 768));
@@ -318,7 +325,8 @@ public class Client {
                     populateList();
                 }
             });
-            gc.anchor = GridBagConstraints.NORTHWEST;
+            gc.anchor = GridBagConstraints.FIRST_LINE_START;
+            cat.setPreferredSize(new Dimension(176, 760));
             gc.gridx = 0;
             gc.gridy = 0;
             dashboard.add(cat, gc);
@@ -326,11 +334,70 @@ public class Client {
 
             itemList = new JList();
             JScrollPane items = new JScrollPane(itemList);
-
+            items.setPreferredSize(new Dimension(300, 760));
             gc.gridx = 1;
             gc.gridy = 0;
             dashboard.add(items, gc);
-            menu.add(dashboard, "Browse");
+
+            JPanel details = new JPanel();
+            details.setPreferredSize(new Dimension(548,768));
+            details.setLayout(new GridBagLayout());
+            GridBagConstraints cgc = new GridBagConstraints();
+            //cgc.insets = new Insets(5,5,5,5);
+            cgc.gridx = 0;
+            cgc.gridy = 0;
+            JLabel title = new JLabel("Filler Title!");
+            details.add(title, cgc);
+
+            cgc.gridx = 1;
+            cgc.gridy = 0;
+            JLabel currBid = new JLabel("Filler bid!");
+            details.add(currBid, cgc);
+
+            cgc.gridx = 0;
+            cgc.gridy = 1;
+            JLabel startTime = new JLabel("Start Time!");
+            details.add(startTime, cgc);
+
+            cgc.gridx = 1;
+            cgc.gridy = 1;
+            JLabel endTime = new JLabel("End Time!");
+            details.add(endTime, cgc);
+
+            cgc.gridx = 0;
+            cgc.gridy = 2;
+            cgc.gridwidth = 2;
+            JTextArea description = new JTextArea("asrlijhgarpouewgharewpog rowaupighrepog regpaoierhg opraeiwhg raepowuigh ropg aperough awrp9oguihwarpeo ugh");
+            description.setEditable(false);
+            description.setLineWrap(true);
+            description.setWrapStyleWord(true);
+            JScrollPane descPane = new JScrollPane(description);
+            descPane.setPreferredSize(new Dimension(548, 384));
+            details.add(descPane, cgc);
+
+            cgc.gridx = 0;
+            cgc.gridy = 3;
+            cgc.gridwidth = 1;
+            JLabel seller = new JLabel("Seller Info!");
+            details.add(seller, cgc);
+
+            cgc.gridx = 1;
+            cgc.gridy = 3;
+            JPanel bidOptions = new JPanel();
+            JTextField bidAmount = new JTextField(10);
+            JButton bid = new JButton("Bid!");
+            bidOptions.add(new JLabel("Bid Amount:"));
+            bidOptions.add(bidAmount);
+            bidOptions.add(bid);
+            details.add(bidOptions, cgc);
+
+
+
+            gc.gridx = 2;
+            gc.gridy = 0;
+            dashboard.add(details, gc);
+
+            return dashboard;
 
         }
 
