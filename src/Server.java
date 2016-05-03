@@ -22,7 +22,9 @@ public class Server {
     public Server() throws Exception{
         System.out.println("Starting server...");
         users = PersistanceLayer.loadAllUsers();
-        items.add(new Item("A thing", "A good thing", "Fashion"));
+        //items.add(new Item());
+        items = PersistanceLayer.loadAllItems();
+        //PersistanceLayer.addItem(new Item());
         listener = new ServerSocket(1224);
         try {
             while (true) {

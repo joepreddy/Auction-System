@@ -20,6 +20,7 @@ public class Client {
 
     Boolean connected = false;
     User loggedUser;
+    Item selectedBrowseItem;
 
     ArrayList<Item> currentDispItems;
 
@@ -283,6 +284,16 @@ public class Client {
         JList<String> categories;
         JList<Item> itemList;
 
+        JPanel details;
+        JPanel bidOptions;
+
+        JLabel title;
+        JLabel currBid;
+        JLabel startTime;
+        JLabel endTime;
+        JTextArea description;
+        JLabel seller;
+
         public MainWindow() {
             super("XYZ Auction System");
             init();
@@ -305,10 +316,6 @@ public class Client {
         }
 
         public JPanel createBrowseWindow() {
-
-
-
-
 
             JPanel dashboard = new JPanel();
             dashboard.setPreferredSize(new Dimension(1024, 768));
@@ -334,43 +341,51 @@ public class Client {
 
             itemList = new JList();
             JScrollPane items = new JScrollPane(itemList);
+            itemList.addListSelectionListener(new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    selectedBrowseItem = itemList.getSelectedValue();
+                    displayItemInfo();
+                }
+            });
             items.setPreferredSize(new Dimension(300, 760));
             gc.gridx = 1;
             gc.gridy = 0;
             dashboard.add(items, gc);
 
-            JPanel details = new JPanel();
+            details = new JPanel();
             details.setPreferredSize(new Dimension(548,768));
             details.setLayout(new GridBagLayout());
             GridBagConstraints cgc = new GridBagConstraints();
             //cgc.insets = new Insets(5,5,5,5);
             cgc.gridx = 0;
             cgc.gridy = 0;
-            JLabel title = new JLabel("Filler Title!");
+            title = new JLabel();
             details.add(title, cgc);
 
             cgc.gridx = 1;
             cgc.gridy = 0;
-            JLabel currBid = new JLabel("Filler bid!");
+            currBid = new JLabel();
             details.add(currBid, cgc);
 
             cgc.gridx = 0;
             cgc.gridy = 1;
-            JLabel startTime = new JLabel("Start Time!");
+            startTime = new JLabel();
             details.add(startTime, cgc);
 
             cgc.gridx = 1;
             cgc.gridy = 1;
-            JLabel endTime = new JLabel("End Time!");
+            endTime = new JLabel();
             details.add(endTime, cgc);
 
             cgc.gridx = 0;
             cgc.gridy = 2;
             cgc.gridwidth = 2;
-            JTextArea description = new JTextArea("asrlijhgarpouewgharewpog rowaupighrepog regpaoierhg opraeiwhg raepowuigh ropg aperough awrp9oguihwarpeo ugh");
+            description = new JTextArea();
             description.setEditable(false);
             description.setLineWrap(true);
             description.setWrapStyleWord(true);
+            description.setText("Select an item to view more details and bid!");
             JScrollPane descPane = new JScrollPane(description);
             descPane.setPreferredSize(new Dimension(548, 384));
             details.add(descPane, cgc);
@@ -378,20 +393,19 @@ public class Client {
             cgc.gridx = 0;
             cgc.gridy = 3;
             cgc.gridwidth = 1;
-            JLabel seller = new JLabel("Seller Info!");
+            seller = new JLabel();
             details.add(seller, cgc);
 
             cgc.gridx = 1;
             cgc.gridy = 3;
-            JPanel bidOptions = new JPanel();
+            bidOptions = new JPanel();
             JTextField bidAmount = new JTextField(10);
             JButton bid = new JButton("Bid!");
             bidOptions.add(new JLabel("Bid Amount:"));
             bidOptions.add(bidAmount);
             bidOptions.add(bid);
             details.add(bidOptions, cgc);
-
-
+            bidOptions.setVisible(false);
 
             gc.gridx = 2;
             gc.gridy = 0;
@@ -410,6 +424,24 @@ public class Client {
                 e.printStackTrace();
             }
 
+        }
+
+        public void displayItemInfo() {
+            if(selectedBrowseItem != null) {
+                title.setText(selectedBrowseItem.getTitle());
+                if(!selectedBrowseItem.getBids().isEmpty()) {
+                    currBid.setText("Current Bid: " + String.valueOf(selectedBrowseItem.getHighestBid().getValue()));
+                }
+                else {
+                    currBid.setText("Reserve Price: " + String.valueOf(selectedBrowseItem.getReservePrice()));
+                }
+                startTime.setText(selectedBrowseItem.getStartTime().toString());
+                endTime.setText(selectedBrowseItem.getEndTime().toString());
+                description.setText(selectedBrowseItem.getDescription());
+                bidOptions.setVisible(true);
+                //seller.setText(selectedBrowseItem.getSeller().getUsername());
+
+            }
         }
 
         class ItemListModel extends AbstractListModel<Item> {

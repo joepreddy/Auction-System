@@ -1,6 +1,7 @@
 import com.google.gson.Gson;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -10,16 +11,14 @@ public class PersistanceLayer {
 
     private static Gson gson = new Gson();
     private static File users = new File("users.json");
-    private static File items = new File("users.json");
+    private static File items = new File("items.json");
 
     public static void addUser(User user) throws Exception{
         String userData = gson.toJson(user);
         System.out.println(userData);
 
 
-        if(!users.exists()) {
-            users.createNewFile();
-        }
+        users.createNewFile();
 
         FileWriter fw = new FileWriter(users, true);
         BufferedWriter bw = new BufferedWriter(fw);
@@ -37,7 +36,6 @@ public class PersistanceLayer {
             while((line = br.readLine()) != null) {
                 usersSet.add(gson.fromJson(line, User.class));
             }
-            return usersSet;
 
         } catch(Exception fe) {
             System.out.println(fe);
@@ -49,10 +47,28 @@ public class PersistanceLayer {
         String itemData = gson.toJson(item);
         System.out.println(itemData);
 
+        items.createNewFile();
+
         FileWriter fw = new FileWriter(items, true);
         BufferedWriter bw = new BufferedWriter(fw);
         bw.write(itemData+"\n");
         bw.close();
+    }
+
+    public static ArrayList<Item> loadAllItems() {
+        ArrayList<Item> itemsSet = new ArrayList<>();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(items));
+
+            String line;
+            while((line = br.readLine()) != null) {
+                itemsSet.add(gson.fromJson(line, Item.class));
+            }
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return itemsSet;
     }
 
 }
