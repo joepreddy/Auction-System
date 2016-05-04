@@ -16,33 +16,6 @@ public class Comms extends Thread{
     public Comms(Socket socket) {this.socket = socket;}
 
     public void run(){
-       /* try {
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
-            while(true) {
-                System.out.println("Detected new client: Establishing Connection!");
-                out.println("Ping!");
-                String resp = in.readLine();
-                if(resp.equals("Pong!")){
-                    System.out.println("Connection Established");
-                    return;
-                }
-            }
-        }
-        catch(IOException e)
-        {
-            System.out.println(e);
-        }
-        finally
-        {
-            try {
-                socket.close();
-            }
-            catch(IOException i)
-            {
-                System.out.println(i);
-            }
-        }*/
         try {
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream((socket.getInputStream()));
@@ -68,7 +41,7 @@ public class Comms extends Thread{
                         //return;
                     }
                     else if(msg instanceof Message.UserRegistrationRequest) {
-                        System.out.println("Registration request recieved");
+                        System.out.println("Registration request received");
                         out.writeObject(Server.registerUser((Message.UserRegistrationRequest)msg));
                         System.out.println("Sent back reply");
 
@@ -78,15 +51,27 @@ public class Comms extends Thread{
                         out.writeObject(Server.requestItems((Message.ItemRequest)msg));
                         System.out.println("Item reply sent");
                     }
+                    else if(msg instanceof  Message.ItemBidRequest) {
+                        System.out.println("Bid request received!");
+                        out.writeObject(Server.processItemBid((Message.ItemBidRequest)msg));
+                        System.out.println("Reply sent");
+                    }
                     //return;
                 } catch (Exception e){
-                    e.printStackTrace();
+                    System.out.println("Connection Lost!");
+                    break;
                 }
 
 
+            }
 
+            try {
+                socket.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
+
         catch(Exception e) {
             System.out.println(e);
         }

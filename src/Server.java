@@ -94,5 +94,22 @@ public class Server {
         }
     }
 
+    public static Message.ItemBidRequestResponse processItemBid(Message.ItemBidRequest request) {
+        if(request.bidAmount > request.bidItem.getHighestBid().getValue() && request.bidAmount > request.bidItem.getReservePrice()) {
+            if(request.bidder.getUserID() != request.bidItem.getHighestBid().getKey()){
+                if(request.bidItem.getStatus() == 1){
+                    if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
+                        return new Message().new ItemBidRequestResponse(true);
+                    }
+                }
+            }
+        }
+        else {
+            return new Message().new ItemBidRequestResponse(false, "There is a higher bid on this item!");
+        }
+        return new Message().new ItemBidRequestResponse(false);
+    }
+
+
 
     }

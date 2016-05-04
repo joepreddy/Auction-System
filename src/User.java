@@ -13,6 +13,7 @@ public class User implements Serializable{
 
     public String getUsername(){return username;}
     public char[] getPassword(){return password;}
+    public int getUserID(){return userID;}
 
     public User(String firstName, String lastName, String username, char[] password) {
         this.firstName = firstName;

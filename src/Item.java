@@ -15,6 +15,7 @@ public class Item implements Serializable{
     private int reservePrice;
     private Date startTime;
     private Date endTime;
+    private int status; //0=Not Active Yet, 1 = Active, 2=Expired
     //private ArrayList<Bid> bids = new ArrayList<Bid>();
     private LinkedHashMap<Integer, Integer> bids = new LinkedHashMap<>();
 
@@ -54,13 +55,15 @@ public class Item implements Serializable{
     public Date getEndTime() {return endTime;}
     //public ArrayList<Bid>  getBids() {return bids;}
     public LinkedHashMap<Integer, Integer> getBids(){return bids;}
+    public int getStatus(){return status;}
+    public int getID(){return id;}
 
     public String toString() {
         if(bids.isEmpty()) {
-            return title + "        Be the first to bid on this item!";
+            return title + "     |     Be the first to bid on this item!";
         }
         else {
-            return title + "Current Bid: " + getHighestBid().getValue();
+            return title + "     |     Current Bid: £" + getHighestBid().getValue();
         }
 
     }
@@ -75,11 +78,14 @@ public class Item implements Serializable{
         return max;
     }
 
-    class Bid {
-        private int bidderID;
-        private int bidAmount;
-
-        public int getBidAmount(){return bidAmount;}
+    public Boolean addBid(int userID, int amount) {
+        if(amount > getHighestBid().getValue()) {
+            bids.put(userID, amount);
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
 }

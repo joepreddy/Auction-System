@@ -8,21 +8,18 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
-/**
- * Created by Joe on 19/04/2016.
- */
 public class Client {
 
     //BufferedReader in;
-    ObjectInputStream in;
-    ObjectOutputStream out;
-    private int clientID;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
 
-    Boolean connected = false;
-    User loggedUser;
-    Item selectedBrowseItem;
+    //Boolean connected = false;
+    private User loggedUser;
+    private Item selectedBrowseItem;
 
-    ArrayList<Item> currentDispItems;
+    private ArrayList<Item> currentDispItems;
+    private MainWindow mainWindow;
 
     public Client() {
         LoginScreen login = new LoginScreen();
@@ -52,9 +49,12 @@ public class Client {
                 else if(msg instanceof Message.UserAuthResponse) {
                     if(((Message.UserAuthResponse) msg).successful) {
                         System.out.println("Load client!");
+                        loggedUser = ((Message.UserAuthResponse) msg).user;
+                        MainWindow window = new MainWindow();
                     }
                     else {
                         System.out.println(((Message.UserAuthResponse) msg).info);
+                        JOptionPane.showMessageDialog(null, ((Message.UserAuthResponse) msg).info);
                     }
                     //return;
                 }
@@ -72,6 +72,12 @@ public class Client {
                     }
                     else {
                         System.out.println(((Message.ItemRequestResponse) msg).info);
+                    }
+                }
+                else if(msg instanceof Message.ItemBidRequestResponse) {
+                    if(((Message.ItemBidRequestResponse) msg).successful) {
+                        out.writeObject(new Message().new ItemRequest(mainWindow.categories.getSelectedValue()));
+                        mainWindow.displayItemInfo();
                     }
                 }
             }
@@ -255,7 +261,7 @@ public class Client {
 
         public void loginUser(String username, char[] password) throws Exception{
             out.writeObject(new Message().new UserAuthRequest(username, password));
-            MainWindow window = new MainWindow();
+
         }
 
         /*public void registrationUserTest() {
@@ -275,6 +281,8 @@ public class Client {
 
 
     }
+
+    //TODO seperate mainwindow elements into seperate sub-classes
 
     class MainWindow extends JFrame {
 
@@ -306,12 +314,14 @@ public class Client {
             cont.add(mainFrame);
             setVisible(true);
             pack();
+            mainWindow = this;
         }
 
         public void createMainWindow() {
             JTabbedPane menu = new JTabbedPane();
             mainFrame.add(menu);
             menu.add(createBrowseWindow(), "Browse");
+            menu.add(createItemsWindow(), "My Items");
 
         }
 
@@ -402,6 +412,17 @@ public class Client {
             JTextField bidAmount = new JTextField(10);
             JButton bid = new JButton("Bid!");
             bidOptions.add(new JLabel("Bid Amount:"));
+            bid.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try {
+                        out.writeObject(new Message().new ItemBidRequest(loggedUser, Integer.valueOf(bidAmount.getText()), itemList.getSelectedValue()));
+                    } catch(Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                }
+            });
             bidOptions.add(bidAmount);
             bidOptions.add(bid);
             details.add(bidOptions, cgc);
@@ -413,6 +434,26 @@ public class Client {
 
             return dashboard;
 
+        }
+
+        public JPanel createItemsWindow() {
+            JPanel itemsScreen = new JPanel();
+
+            itemsScreen.setPreferredSize(new Dimension(1024, 768));
+            itemsScreen.setLayout(new GridBagLayout());
+
+            GridBagConstraints gc = new GridBagConstraints();
+            gc.gridx = 0;
+            gc.gridy = 0;
+
+            JList postedItems = new JList();
+            JScrollPane postedItemsPane = new JScrollPane(postedItems);
+            postedItemsPane.setPreferredSize(new Dimension(300, 760));
+
+
+
+
+            return itemsScreen;
         }
 
         public void populateList() {

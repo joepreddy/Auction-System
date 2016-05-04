@@ -88,6 +88,32 @@ public class Message implements Serializable{
         }
     }
 
+    class ItemBidRequest extends Message {
+        User bidder;
+        int bidAmount;
+        Item bidItem;
+
+        public ItemBidRequest(User bidder, int bidAmount, Item bidItem){
+            this.bidder = bidder;
+            this.bidAmount = bidAmount;
+            this.bidItem = bidItem;
+        }
+    }
+
+    class ItemBidRequestResponse extends Message {
+        Boolean successful;
+        String info;
+
+        public ItemBidRequestResponse(Boolean successful) {
+            this.successful = successful;
+        }
+
+        public ItemBidRequestResponse(Boolean successful, String info) {
+            this.successful = successful;
+            this.info = info;
+        }
+    }
+
     class ConnectionRequest extends Message {
         Boolean successful = false;
     }
