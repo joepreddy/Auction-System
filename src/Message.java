@@ -1,5 +1,6 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.function.BooleanSupplier;
 
 /**
  * Created by Joe on 19/04/2016.
@@ -109,6 +110,54 @@ public class Message implements Serializable{
         }
 
         public ItemBidRequestResponse(Boolean successful, String info) {
+            this.successful = successful;
+            this.info = info;
+        }
+    }
+
+    class ItemRequestByUser extends Message {
+        int userID;
+
+        public ItemRequestByUser(int userID) {
+            this.userID = userID;
+        }
+    }
+
+    class ItemRequestByUserResponse extends Message {
+        Boolean successful;
+        ArrayList<Item> items;
+        String info;
+
+        public ItemRequestByUserResponse(Boolean successful, ArrayList<Item> items) {
+            this.successful = successful;
+            this.items = items;
+        }
+
+        public ItemRequestByUserResponse(Boolean successful, String info) {
+            this.successful = successful;
+            this.info = info;
+        }
+    }
+
+    class ItemListingRequest extends Message {
+        Item listingItem;
+
+        public ItemListingRequest(Item listingItem) {
+            this.listingItem = listingItem;
+        }
+    }
+
+    class ItemListingRequestResponse extends Message {
+        Boolean successful;
+        Item item;
+        String info;
+
+        public ItemListingRequestResponse(Boolean successful, Item item) {
+            this.successful = successful;
+            this.item = item;
+        }
+
+        public ItemListingRequestResponse(Boolean successful, String info) {
             this.successful = successful;
             this.info = info;
         }

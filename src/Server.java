@@ -100,14 +100,43 @@ public class Server {
                 if(request.bidItem.getStatus() == 1){
                     if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
                         return new Message().new ItemBidRequestResponse(true);
+                    } else {
+                        return new Message().new ItemBidRequestResponse(false, "Item Object rejected bid addition. (Client may not have updated bid)");
                     }
+                } else {
+                    return new Message().new ItemBidRequestResponse(false, "Item is not open for bidding!");
                 }
+            } else {
+                return new Message().new ItemBidRequestResponse(false, "User already holds the highest bid!");
             }
-        }
-        else {
+        } else {
             return new Message().new ItemBidRequestResponse(false, "There is a higher bid on this item!");
         }
-        return new Message().new ItemBidRequestResponse(false);
+    }
+
+    public static Message.ItemRequestByUserResponse requestItemByUser(Message.ItemRequestByUser request) {
+        ArrayList<Item> userItems = new ArrayList<>();
+        for(Item item : items) {
+            if(item.getSellerID() == request.userID) {
+                userItems.add(item);
+            }
+        }
+        if(userItems.isEmpty()) {
+            return new Message().new ItemRequestByUserResponse(false, "No items for sale by this user!");
+        } else {
+            return new Message().new ItemRequestByUserResponse(true, userItems);
+        }
+    }
+
+    public static Message.ItemListingRequestResponse listItem(Message.ItemListingRequest request) {
+        request.listingItem.setID(items.size()+1);
+        items.add(request.listingItem);
+        try {
+            PersistanceLayer.addItem(request.listingItem);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new Message().new ItemListingRequestResponse(true, request.listingItem);
     }
 
 

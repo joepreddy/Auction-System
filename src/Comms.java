@@ -56,6 +56,13 @@ public class Comms extends Thread{
                         out.writeObject(Server.processItemBid((Message.ItemBidRequest)msg));
                         System.out.println("Reply sent");
                     }
+                    else if(msg instanceof Message.ItemRequestByUser) {
+                        System.out.println("Item request by user received");
+                        out.writeObject(Server.requestItemByUser((Message.ItemRequestByUser) msg));
+                    }
+                    else if(msg instanceof  Message.ItemListingRequest) {
+                        out.writeObject(Server.listItem((Message.ItemListingRequest)msg));
+                    }
                     //return;
                 } catch (Exception e){
                     System.out.println("Connection Lost!");

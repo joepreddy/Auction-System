@@ -1,3 +1,5 @@
+import jdk.nashorn.internal.scripts.JO;
+
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -7,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Client {
 
@@ -20,6 +23,8 @@ public class Client {
 
     private ArrayList<Item> currentDispItems;
     private MainWindow mainWindow;
+
+    private ArrayList<Item> requestedUserItems = new ArrayList<>();
 
     public Client() {
         LoginScreen login = new LoginScreen();
@@ -76,9 +81,24 @@ public class Client {
                 }
                 else if(msg instanceof Message.ItemBidRequestResponse) {
                     if(((Message.ItemBidRequestResponse) msg).successful) {
-                        out.writeObject(new Message().new ItemRequest(mainWindow.categories.getSelectedValue()));
+                        out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
                         mainWindow.displayItemInfo();
                     }
+                }
+                else if(msg instanceof Message.ItemRequestByUserResponse) {
+                    if(((Message.ItemRequestByUserResponse) msg).successful) {
+                        //requestedUserItems = ((Message.ItemRequestByUserResponse) msg).items;
+                        for(Item i : ((Message.ItemRequestByUserResponse) msg).items) {
+                            mainWindow.iwItemsModel.addElement(i);
+                        }
+
+
+                    } else {
+                        System.out.println(((Message.ItemRequestByUserResponse) msg).info);
+                    }
+                }
+                else if (msg instanceof Message.ItemListingRequestResponse) {
+                    System.out.println("Item successfully added");
                 }
             }
             catch (Exception ex) {
@@ -93,19 +113,33 @@ public class Client {
         Container cont;
         JPanel loginPanel;
         JPanel registerPanel;
-
+        //LOGIN SCREEN VARIABLES
+        JTextField lgUsername = new JTextField(40);
+        JPasswordField lgPassword = new JPasswordField(40);
+        JButton lgLogin = new JButton("Login");
+        JButton lgRegister = new JButton("Register");
+        //REGISTER SCREEN VARIABLES
+        JTextField rgFirstName = new JTextField(20);
+        JTextField rgLastName = new JTextField(20);
+        JTextField rgUsername = new JTextField(20);
+        JPasswordField rgPassword = new JPasswordField(20);
 
         public LoginScreen() {
             super("Auction Login");
             init();
         }
 
-        public void createLoginPanel(){
+        public void init() {
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            createLoginPanel();
+            createRegisterPanel();
+            cont = getContentPane();
+            cont.add(loginPanel);
+            setVisible(true);
+            pack();
+        }
 
-            JTextField username = new JTextField(40);
-            JPasswordField password = new JPasswordField(40);
-            JButton login = new JButton("Login");
-            JButton register = new JButton("Register");
+        public void createLoginPanel(){
 
             loginPanel = new JPanel();
             loginPanel.setLayout(new GridBagLayout());
@@ -126,7 +160,7 @@ public class Client {
 
             gc.gridx = 1;
             gc.gridy = 1;
-            loginPanel.add(username, gc);
+            loginPanel.add(lgUsername, gc);
 
             gc.gridx = 0;
             gc.gridy = 2;
@@ -134,22 +168,22 @@ public class Client {
 
             gc.gridx = 1;
             gc.gridy = 2;
-            loginPanel.add(password, gc);
+            loginPanel.add(lgPassword, gc);
 
             JPanel buttons = new JPanel();
             buttons.setLayout(new FlowLayout());
-            buttons.add(login);
-            login.addActionListener(new ActionListener() {
+            buttons.add(lgLogin);
+            lgLogin.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     try {
-                        loginUser(username.getText(), password.getPassword());
+                        loginUser(lgUsername.getText(), lgPassword.getPassword());
                     } catch(Exception loginException) {
                         loginException.printStackTrace();
                     }
                 }
             });
-            buttons.add(register);
-            register.addActionListener(new ActionListener() {
+            buttons.add(lgRegister);
+            lgRegister.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     cont.remove(loginPanel);
                     cont.add(registerPanel);
@@ -165,19 +199,12 @@ public class Client {
 
         public void createRegisterPanel() {
 
-            JTextField firstName = new JTextField(20);
-            JTextField lastName = new JTextField(20);
-            JTextField username = new JTextField(20);
-            JPasswordField password = new JPasswordField(20);
-
             registerPanel = new JPanel();
             registerPanel.setLayout(new GridBagLayout());
 
             GridBagConstraints gc = new GridBagConstraints();
             gc.fill = GridBagConstraints.HORIZONTAL;
             gc.insets = new Insets(10, 10, 10, 10);
-
-
 
             gc.fill =GridBagConstraints.HORIZONTAL;
             gc.gridx = 0;
@@ -186,7 +213,7 @@ public class Client {
 
             gc.gridx = 1;
             gc.gridy = 0;
-            registerPanel.add(firstName, gc);
+            registerPanel.add(rgFirstName, gc);
 
             gc.gridx = 2;
             gc.gridy = 0;
@@ -194,7 +221,7 @@ public class Client {
 
             gc.gridx = 3;
             gc.gridy = 0;
-            registerPanel.add(lastName, gc);
+            registerPanel.add(rgLastName, gc);
 
             gc.gridx = 0;
             gc.gridy = 1;
@@ -202,7 +229,7 @@ public class Client {
 
             gc.gridx = 1;
             gc.gridy = 1;
-            registerPanel.add(username, gc);
+            registerPanel.add(rgUsername, gc);
 
             gc.gridx = 2;
             gc.gridy = 1;
@@ -210,7 +237,7 @@ public class Client {
 
             gc.gridx = 3;
             gc.gridy = 1;
-            registerPanel.add(password, gc);
+            registerPanel.add(rgPassword, gc);
 
             JPanel buttons = new JPanel();
             JButton register = new JButton("Register");
@@ -220,7 +247,7 @@ public class Client {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
-                        registerUser(firstName.getText(), lastName.getText(), username.getText(), password.getPassword());
+                        registerUser(rgFirstName.getText(), rgLastName.getText(), rgUsername.getText(), rgPassword.getPassword());
                     } catch(Exception ex) {
                         System.out.println(e);
                     }
@@ -246,39 +273,14 @@ public class Client {
             registerPanel.add(buttons,gc);
         }
 
-
-        public void init() {
-
-            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            createLoginPanel();
-            createRegisterPanel();
-            cont = getContentPane();
-            cont.add(loginPanel);
-            setVisible(true);
-            pack();
-        }
-
-
         public void loginUser(String username, char[] password) throws Exception{
             out.writeObject(new Message().new UserAuthRequest(username, password));
-
         }
-
-        /*public void registrationUserTest() {
-            User user = new User("Jerry", "Jackson", "jj", ("eagh".toCharArray()));
-            try {
-                PersistanceLayer.addUser(user);
-            } catch (Exception e){
-                System.out.println(e);
-            }
-
-        }*/
 
         public void registerUser(String firstName, String lastName, String username, char[] password) throws Exception{
             System.out.println("Sending registration request...");
             out.writeObject(new Message().new UserRegistrationRequest(firstName, lastName, username, password));
         }
-
 
     }
 
@@ -289,18 +291,36 @@ public class Client {
         Container cont;
         JPanel mainFrame = new JPanel();
 
-        JList<String> categories;
-        JList<Item> itemList;
+        //BROWSE TAB VARIABLES
+        JList<String> brCategories;
+        JList<Item> brItemList;
+        JPanel brDetails;
+        JPanel brBidOptions;
+        JLabel brTitle;
+        JLabel brCurrBid;
+        JLabel brStartTime;
+        JLabel brEndTime;
+        JTextArea brDescription;
+        JLabel brSeller;
+        JTextField brBidAmount;
 
-        JPanel details;
-        JPanel bidOptions;
-
-        JLabel title;
-        JLabel currBid;
-        JLabel startTime;
-        JLabel endTime;
-        JTextArea description;
-        JLabel seller;
+        //ITEMS WINDOW VARIABLES
+        JList<Item> iwItems;
+        JScrollPane iwItemsPane;
+        JPanel iwDetails;
+        JTextField iwTitle;
+        JComboBox<String> iwCategory;
+        JTextField iwReserve;
+        JTextArea iwDescription;
+        JSpinner iwStartTime;
+        JSpinner iwEndTime;
+        JButton iwNew;
+        JButton iwEdit;
+        JButton iwSave;
+        Boolean editingItem;
+        Item iwCurrEdit;
+        JCheckBox iwTimeNow;
+        UserItemListModel iwItemsModel;
 
         public MainWindow() {
             super("XYZ Auction System");
@@ -315,6 +335,7 @@ public class Client {
             setVisible(true);
             pack();
             mainWindow = this;
+            getUserItems(loggedUser.getUserID());
         }
 
         public void createMainWindow() {
@@ -332,14 +353,12 @@ public class Client {
             dashboard.setLayout(new GridBagLayout());
             GridBagConstraints gc = new GridBagConstraints();
 
-
-
-            categories = new JList<String>(Item.getCategories());
-            JScrollPane cat = new JScrollPane(categories);
-            categories.addListSelectionListener(new ListSelectionListener() {
+            brCategories = new JList<String>(Item.getCategories());
+            JScrollPane cat = new JScrollPane(brCategories);
+            brCategories.addListSelectionListener(new ListSelectionListener() {
                 @Override
                 public void valueChanged(ListSelectionEvent e) {
-                    populateList();
+                    populateBrowseItemsList();
                 }
             });
             gc.anchor = GridBagConstraints.FIRST_LINE_START;
@@ -349,12 +368,12 @@ public class Client {
             dashboard.add(cat, gc);
 
 
-            itemList = new JList();
-            JScrollPane items = new JScrollPane(itemList);
-            itemList.addListSelectionListener(new ListSelectionListener() {
+            brItemList = new JList();
+            JScrollPane items = new JScrollPane(brItemList);
+            brItemList.addListSelectionListener(new ListSelectionListener() {
                 @Override
                 public void valueChanged(ListSelectionEvent e) {
-                    selectedBrowseItem = itemList.getSelectedValue();
+                    selectedBrowseItem = brItemList.getSelectedValue();
                     displayItemInfo();
                 }
             });
@@ -363,104 +382,242 @@ public class Client {
             gc.gridy = 0;
             dashboard.add(items, gc);
 
-            details = new JPanel();
-            details.setPreferredSize(new Dimension(548,768));
-            details.setLayout(new GridBagLayout());
+            brDetails = new JPanel();
+            brDetails.setPreferredSize(new Dimension(548,768));
+            brDetails.setLayout(new GridBagLayout());
             GridBagConstraints cgc = new GridBagConstraints();
             //cgc.insets = new Insets(5,5,5,5);
             cgc.gridx = 0;
             cgc.gridy = 0;
-            title = new JLabel();
-            details.add(title, cgc);
+            brTitle = new JLabel();
+            brDetails.add(brTitle, cgc);
 
             cgc.gridx = 1;
             cgc.gridy = 0;
-            currBid = new JLabel();
-            details.add(currBid, cgc);
+            brCurrBid = new JLabel();
+            brDetails.add(brCurrBid, cgc);
 
             cgc.gridx = 0;
             cgc.gridy = 1;
-            startTime = new JLabel();
-            details.add(startTime, cgc);
+            brStartTime = new JLabel();
+            brDetails.add(brStartTime, cgc);
 
             cgc.gridx = 1;
             cgc.gridy = 1;
-            endTime = new JLabel();
-            details.add(endTime, cgc);
+            brEndTime = new JLabel();
+            brDetails.add(brEndTime, cgc);
 
             cgc.gridx = 0;
             cgc.gridy = 2;
             cgc.gridwidth = 2;
-            description = new JTextArea();
-            description.setEditable(false);
-            description.setLineWrap(true);
-            description.setWrapStyleWord(true);
-            description.setText("Select an item to view more details and bid!");
-            JScrollPane descPane = new JScrollPane(description);
+            brDescription = new JTextArea();
+            brDescription.setEditable(false);
+            brDescription.setLineWrap(true);
+            brDescription.setWrapStyleWord(true);
+            brDescription.setText("Select an item to view more details and bid!");
+            JScrollPane descPane = new JScrollPane(brDescription);
             descPane.setPreferredSize(new Dimension(548, 384));
-            details.add(descPane, cgc);
+            brDetails.add(descPane, cgc);
 
             cgc.gridx = 0;
             cgc.gridy = 3;
             cgc.gridwidth = 1;
-            seller = new JLabel();
-            details.add(seller, cgc);
+            brSeller = new JLabel();
+            brDetails.add(brSeller, cgc);
 
             cgc.gridx = 1;
             cgc.gridy = 3;
-            bidOptions = new JPanel();
-            JTextField bidAmount = new JTextField(10);
+            brBidOptions = new JPanel();
+
             JButton bid = new JButton("Bid!");
-            bidOptions.add(new JLabel("Bid Amount:"));
+            brBidOptions.add(new JLabel("Bid Amount:"));
             bid.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    try {
-                        out.writeObject(new Message().new ItemBidRequest(loggedUser, Integer.valueOf(bidAmount.getText()), itemList.getSelectedValue()));
-                    } catch(Exception ex) {
-                        ex.printStackTrace();
-                    }
-
+                    placeBid();
                 }
             });
-            bidOptions.add(bidAmount);
-            bidOptions.add(bid);
-            details.add(bidOptions, cgc);
-            bidOptions.setVisible(false);
+            brBidOptions.add(brBidAmount = new JTextField(25));
+            brBidOptions.add(bid);
+            brDetails.add(brBidOptions, cgc);
+            brBidOptions.setVisible(false);
 
             gc.gridx = 2;
             gc.gridy = 0;
-            dashboard.add(details, gc);
+            dashboard.add(brDetails, gc);
 
             return dashboard;
-
         }
 
         public JPanel createItemsWindow() {
-            JPanel itemsScreen = new JPanel();
 
-            itemsScreen.setPreferredSize(new Dimension(1024, 768));
-            itemsScreen.setLayout(new GridBagLayout());
 
+            JPanel itemsWindow = new JPanel();
+            itemsWindow.setPreferredSize(new Dimension(1024, 768));
+            itemsWindow.setLayout(new GridBagLayout());
             GridBagConstraints gc = new GridBagConstraints();
+
+            iwItems = new JList<Item>(iwItemsModel = new UserItemListModel(requestedUserItems));
+
+            iwItemsPane = new JScrollPane(iwItems);
+            iwItems.addListSelectionListener(new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    //TODO display items
+                }
+            });
+            gc.anchor = GridBagConstraints.FIRST_LINE_START;
+            iwItemsPane.setPreferredSize(new Dimension(300, 760));
             gc.gridx = 0;
             gc.gridy = 0;
-
-            JList postedItems = new JList();
-            JScrollPane postedItemsPane = new JScrollPane(postedItems);
-            postedItemsPane.setPreferredSize(new Dimension(300, 760));
+            itemsWindow.add(iwItemsPane, gc);
 
 
+            /*brItemList = new JList();
+            JScrollPane items = new JScrollPane(brItemList);
+            brItemList.addListSelectionListener(new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    selectedBrowseItem = brItemList.getSelectedValue();
+                    displayItemInfo();
+                }
+            });
+            items.setPreferredSize(new Dimension(300, 760));
+            gc.gridx = 1;
+            gc.gridy = 0;
+            dashboard.add(items, gc);*/
 
+            iwDetails = new JPanel();
+            iwDetails.setPreferredSize(new Dimension(724,768));
+            iwDetails.setLayout(new GridBagLayout());
+            GridBagConstraints igc = new GridBagConstraints();
+            igc.insets = new Insets(10,0,0,0);
+            igc.anchor = GridBagConstraints.FIRST_LINE_START;
+            //igc.weightx = 1.0;
+            //igc.weighty = 1.0;
+            igc.gridx = 0;
+            igc.gridy = 0;
+            igc.gridwidth = 2;
+            iwDetails.add(new JLabel("Title:"), igc);
 
-            return itemsScreen;
+            igc.gridx = 0;
+            igc.gridy = 1;
+            igc.gridwidth = 2;
+            //igc.weightx = 1;
+            //igc.fill = GridBagConstraints.HORIZONTAL;
+            iwDetails.add(iwTitle = new JTextField(60), igc);
+            iwTitle.setEnabled(false);
+
+            igc.gridx = 0;
+            igc.gridy = 2;
+            igc.gridwidth = 1;
+            iwDetails.add(new JLabel("Category:"), igc);
+
+            igc.gridx = 1;
+            igc.gridy = 2;
+            iwDetails.add(new JLabel("Reserve Price:"), igc);
+
+            igc.gridx = 0;
+            igc.gridy = 3;
+            iwDetails.add(iwCategory = new JComboBox<String>(Item.getCategories()), igc);
+            iwCategory.setEnabled(false);
+
+            igc.gridx = 1;
+            igc.gridy = 3;
+            iwDetails.add(iwReserve = new JTextField(25), igc);
+            iwReserve.setEnabled(false);
+
+            igc.gridx = 0;
+            igc.gridy = 4;
+            igc.gridwidth = 2;
+            iwDescription = new JTextArea();
+            iwDescription.setEditable(false);
+            iwDescription.setLineWrap(true);
+            iwDescription.setWrapStyleWord(true);
+            iwDescription.setText("Select a bid to edit it, or list a new item!");
+            JScrollPane iwDescPane = new JScrollPane(iwDescription);
+            iwDescPane.setPreferredSize(new Dimension(720, 300));
+            iwDetails.add(iwDescPane, igc);
+
+            igc.gridx = 0;
+            igc.gridy = 5;
+            igc.gridwidth = 1;
+            iwDetails.add(new JLabel("Start Time:"), igc);
+
+            igc.gridx = 1;
+            igc.gridy = 5;
+            iwDetails.add(new JLabel("End Time:"), igc);
+
+            igc.gridx = 0;
+            igc.gridy = 6;
+            iwStartTime = new JSpinner();
+            iwStartTime.setModel(new SpinnerDateModel());
+            iwDetails.add(iwStartTime, igc);
+            iwStartTime.setEnabled(false);
+
+            igc.gridx = 1;
+            igc.gridy = 6;
+            iwEndTime = new JSpinner();
+            iwEndTime.setModel(new SpinnerDateModel());
+            iwDetails.add(iwEndTime, igc);
+            iwEndTime.setEnabled(false);
+
+            igc.gridx = 0;
+            igc.gridy = 7;
+            JPanel startNowChk = new JPanel();
+            startNowChk.add(new JLabel("Start Now:"));
+            startNowChk.add(iwTimeNow = new JCheckBox());
+            iwTimeNow.setEnabled(false);
+            iwTimeNow.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if(iwStartTime.isEnabled()) {
+                        iwStartTime.setEnabled(false);
+                    } else {
+                        iwStartTime.setEnabled(true);
+                    }
+                }
+            });
+            iwDetails.add(startNowChk, igc);
+
+            igc.gridx = 0;
+            igc.gridy = 8;
+            igc.gridwidth = 2;
+            igc.anchor = GridBagConstraints.LAST_LINE_END;
+            JPanel iwButtons = new JPanel();
+            iwButtons.setBorder(BorderFactory.createLineBorder(Color.black));
+            iwButtons.add(iwNew = new JButton("New Item"));
+            iwNew.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    newItemSetup();
+                }
+            });
+            iwButtons.add(iwEdit = new JButton("Edit Selected Item"));
+            iwEdit.setEnabled(false);
+            iwButtons.add(iwSave = new JButton("Save Changes"));
+            iwSave.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    submitNewItem();
+                }
+            });
+            iwSave.setEnabled(false);
+            iwDetails.add(iwButtons, igc);
+
+            gc.gridx = 1;
+            gc.gridy = 0;
+            itemsWindow.add(iwDetails, gc);
+
+            return itemsWindow;
+
         }
 
-        public void populateList() {
+        public void populateBrowseItemsList() {
             try {
-                out.writeObject(new Message().new ItemRequest(categories.getSelectedValue()));
+                out.writeObject(new Message().new ItemRequest(brCategories.getSelectedValue()));
                 System.out.println("Attempting to get items");
-                itemList.setModel(new ItemListModel(currentDispItems));
+                brItemList.setModel(new ItemListModel(currentDispItems));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -469,20 +626,102 @@ public class Client {
 
         public void displayItemInfo() {
             if(selectedBrowseItem != null) {
-                title.setText(selectedBrowseItem.getTitle());
+                brTitle.setText(selectedBrowseItem.getTitle());
                 if(!selectedBrowseItem.getBids().isEmpty()) {
-                    currBid.setText("Current Bid: " + String.valueOf(selectedBrowseItem.getHighestBid().getValue()));
+                    brCurrBid.setText("Current Bid: " + String.valueOf(selectedBrowseItem.getHighestBid().getValue()));
                 }
                 else {
-                    currBid.setText("Reserve Price: " + String.valueOf(selectedBrowseItem.getReservePrice()));
+                    brCurrBid.setText("Reserve Price: " + String.valueOf(selectedBrowseItem.getReservePrice()));
                 }
-                startTime.setText(selectedBrowseItem.getStartTime().toString());
-                endTime.setText(selectedBrowseItem.getEndTime().toString());
-                description.setText(selectedBrowseItem.getDescription());
-                bidOptions.setVisible(true);
+                brStartTime.setText(selectedBrowseItem.getStartTime().toString());
+                brEndTime.setText(selectedBrowseItem.getEndTime().toString());
+                brDescription.setText(selectedBrowseItem.getDescription());
+                brBidOptions.setVisible(true);
                 //seller.setText(selectedBrowseItem.getSeller().getUsername());
 
             }
+        }
+
+        public void placeBid() {
+            try {
+                out.writeObject(new Message().new ItemBidRequest(loggedUser, Integer.valueOf(brBidAmount.getText()), brItemList.getSelectedValue()));
+            } catch(Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        public void newItemSetup() {
+            editingItem = true;
+            iwCurrEdit = null;
+
+            iwTitle.setText("");
+            iwReserve.setText("");
+            iwDescription.setText("");
+
+            iwTitle.setEnabled(true);
+            iwCategory.setEnabled(true);
+            iwReserve.setEnabled(true);
+            iwDescription.setEditable(true);
+            iwStartTime.setEnabled(true);
+            iwEndTime.setEnabled(true);
+            iwSave.setEnabled(true);
+            iwTimeNow.setEnabled(true);
+        }
+
+        public void submitNewItem(){
+            if(iwTitle.getText() != null && !iwTitle.getText().equals("")) {
+                if(!iwCategory.getSelectedItem().equals("All")) {
+                    if(isStringInteger(iwReserve.getText())) {
+                        if(Integer.parseInt(iwReserve.getText()) > 0) {
+                            if(iwDescription.getText().length() > 40) {
+                                Date nowDate = new Date();
+                                if(nowDate.before((Date)iwStartTime.getValue()) || iwTimeNow.isSelected()) {
+                                    if(nowDate.before((Date)iwEndTime.getValue())) {
+                                        try {
+                                            out.writeObject(new Message().new ItemListingRequest(new Item(iwTitle.getText(), iwDescription.getText(), iwCategory.getSelectedItem().toString(),
+                                                    loggedUser.getUserID(), Integer.parseInt(iwReserve.getText()), (Date)iwStartTime.getValue(), (Date)iwEndTime.getValue())));
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    } else {
+                                        JOptionPane.showMessageDialog(null, "The end date must be in the future!");
+                                    }
+                                } else {
+                                    JOptionPane.showMessageDialog(null, "Start time must be in the future (or tick the 'Start Now' box)!");
+                                }
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Your description must be at least 40 characters long!");
+                            }
+                        } else {
+                            JOptionPane.showMessageDialog(null, "The reserve price must be more than 0!");
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Reserve price must be a number!");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please choose a valid category!");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "A title is required!");
+            }
+        }
+
+        public void getUserItems(int userID) {
+            try {
+                out.writeObject(new Message().new ItemRequestByUser(userID));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public Boolean isStringInteger(String string) {
+            try {
+                Integer.parseInt(string);
+                return true;
+            } catch (Exception e) {
+
+            }
+            return false;
         }
 
         class ItemListModel extends AbstractListModel<Item> {
@@ -501,6 +740,15 @@ public class Client {
                 return modelItem.get(index);
             }
 
+        }
+
+        class UserItemListModel extends AbstractListModel<Item> {
+            public ArrayList<Item> modelItem;
+
+            public UserItemListModel(ArrayList<Item> modelItem) {this.modelItem = modelItem;}
+            public int getSize() {return modelItem.size();}
+            public Item getElementAt(int index) {return modelItem.get(index);}
+            public void addElement(Item item) {modelItem.add(item);}
         }
 
     }

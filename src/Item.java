@@ -19,13 +19,13 @@ public class Item implements Serializable{
     //private ArrayList<Bid> bids = new ArrayList<Bid>();
     private LinkedHashMap<Integer, Integer> bids = new LinkedHashMap<>();
 
-    public Item(String title, String description, String category){
+    /*public Item(String title, String description, String category){
         this.title = title;
         this.description = description;
         this.category = category;
-    }
+    }*/
 
-    public Item() {
+    /*public Item() {
         title = "Test Item";
         description = "Test Description";
         category = "Home and Garden";
@@ -35,7 +35,27 @@ public class Item implements Serializable{
         bids = new LinkedHashMap<>();
         bids.put(2, 200);
         bids.put(3, 300);
+    }*/
 
+    public Item(String title, String description, String category, int sellerID, int reservePrice, Date startTime, Date endTime) {
+        this.title = title;
+        this.description = description;
+        this.category = category;
+        this.sellerID = sellerID;
+        this.reservePrice = reservePrice;
+        this.startTime = startTime;
+        this.endTime = endTime;
+
+        Date dateNow = new Date();
+        if(dateNow.after(startTime) && dateNow.before(endTime)) {
+            status = 1;
+        } else if (dateNow.after(endTime)) {
+            status = 2;
+        } else {
+            status = 0;
+        }
+
+        System.out.println("Created new item with status " + status);
     }
 
     public static String[] getCategories() {
@@ -57,6 +77,10 @@ public class Item implements Serializable{
     public LinkedHashMap<Integer, Integer> getBids(){return bids;}
     public int getStatus(){return status;}
     public int getID(){return id;}
+
+    public void setID(int id) {
+        this.id = id;
+    }
 
     public String toString() {
         if(bids.isEmpty()) {
