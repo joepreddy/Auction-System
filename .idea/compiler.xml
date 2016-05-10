@@ -3,6 +3,7 @@
   <component name="CompilerConfiguration">
     <excludeFromCompile>
       <file url="file://$PROJECT_DIR$/src/asrghrg.java" />
+      <file url="file://$PROJECT_DIR$/src/eshgrthret.java" />
     </excludeFromCompile>
     <resourceExtensions />
     <wildcardResourcePatterns>

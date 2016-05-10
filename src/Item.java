@@ -84,7 +84,7 @@ public class Item implements Serializable{
 
     public String toString() {
         if(bids.isEmpty()) {
-            return title + "     |     Be the first to bid on this item!";
+            return title + "     |     No Current Bids!";
         }
         else {
             return title + "     |     Current Bid: £" + getHighestBid().getValue();

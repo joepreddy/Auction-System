@@ -1,6 +1,9 @@
 import jdk.nashorn.internal.scripts.JO;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
@@ -10,6 +13,8 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static java.lang.Thread.sleep;
 
 public class Client {
 
@@ -24,7 +29,7 @@ public class Client {
     private ArrayList<Item> currentDispItems;
     private MainWindow mainWindow;
 
-    private ArrayList<Item> requestedUserItems = new ArrayList<>();
+    private ArrayList<Item> requestedUserItems;
 
     public Client() {
         LoginScreen login = new LoginScreen();
@@ -87,10 +92,7 @@ public class Client {
                 }
                 else if(msg instanceof Message.ItemRequestByUserResponse) {
                     if(((Message.ItemRequestByUserResponse) msg).successful) {
-                        //requestedUserItems = ((Message.ItemRequestByUserResponse) msg).items;
-                        for(Item i : ((Message.ItemRequestByUserResponse) msg).items) {
-                            mainWindow.iwItemsModel.addElement(i);
-                        }
+                        requestedUserItems = ((Message.ItemRequestByUserResponse) msg).items;
 
 
                     } else {
@@ -296,12 +298,13 @@ public class Client {
         JList<Item> brItemList;
         JPanel brDetails;
         JPanel brBidOptions;
-        JLabel brTitle;
-        JLabel brCurrBid;
-        JLabel brStartTime;
-        JLabel brEndTime;
+        JTextField brTitle;
+        JTextField brCategory;
+        JTextField brCurrBid;
+        JTextField brStartTime;
+        JTextField brEndTime;
         JTextArea brDescription;
-        JLabel brSeller;
+        JTextField brSeller;
         JTextField brBidAmount;
 
         //ITEMS WINDOW VARIABLES
@@ -332,10 +335,11 @@ public class Client {
             createMainWindow();
             cont = getContentPane();
             cont.add(mainFrame);
-            setVisible(true);
             pack();
+            setVisible(true);
+
             mainWindow = this;
-            getUserItems(loggedUser.getUserID());
+            //getUserItems(loggedUser.getUserID());
         }
 
         public void createMainWindow() {
@@ -343,6 +347,17 @@ public class Client {
             mainFrame.add(menu);
             menu.add(createBrowseWindow(), "Browse");
             menu.add(createItemsWindow(), "My Items");
+
+            menu.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    if(menu.getSelectedIndex() == 1) {
+                        System.out.println("My Items Pressed");
+                        getUserItems(loggedUser.getUserID());
+                    }
+                }
+            });
+            pack();
 
         }
 
@@ -383,69 +398,106 @@ public class Client {
             dashboard.add(items, gc);
 
             brDetails = new JPanel();
+            //brDetails.setBackground(Color.red );
             brDetails.setPreferredSize(new Dimension(548,768));
             brDetails.setLayout(new GridBagLayout());
             GridBagConstraints cgc = new GridBagConstraints();
-            //cgc.insets = new Insets(5,5,5,5);
+            cgc.anchor = GridBagConstraints.FIRST_LINE_START;
+            cgc.fill = GridBagConstraints.HORIZONTAL;
+            cgc.insets = new Insets(10,10,10,10);
             cgc.gridx = 0;
             cgc.gridy = 0;
-            brTitle = new JLabel();
-            brDetails.add(brTitle, cgc);
-
-            cgc.gridx = 1;
-            cgc.gridy = 0;
-            brCurrBid = new JLabel();
-            brDetails.add(brCurrBid, cgc);
+            cgc.gridwidth = 2;
+            brDetails.add(new JLabel("Title:"), cgc);
 
             cgc.gridx = 0;
             cgc.gridy = 1;
-            brStartTime = new JLabel();
-            brDetails.add(brStartTime, cgc);
-
-            cgc.gridx = 1;
-            cgc.gridy = 1;
-            brEndTime = new JLabel();
-            brDetails.add(brEndTime, cgc);
+            brDetails.add(brTitle = new JTextField(60), cgc);
+            brTitle.setEditable(false);
 
             cgc.gridx = 0;
             cgc.gridy = 2;
+            cgc.gridwidth = 1;
+            brDetails.add(new JLabel("Category:"), cgc);
+
+            cgc.gridx = 1;
+            cgc.gridy = 2;
+
+            brDetails.add(new JLabel("Reserve/Current Bid:"), cgc);
+
+            cgc.gridx = 0;
+            cgc.gridy = 3;
+            cgc.weightx = 1;
+            brDetails.add(brCategory = new JTextField(10), cgc);
+            brCategory.setEditable(false);
+
+            cgc.gridx = 1;
+            cgc.gridy = 3;
+            brDetails.add(brCurrBid = new JTextField(10), cgc);
+            brCurrBid.setEditable(false);
+
+            cgc.gridx = 0;
+            cgc.gridy = 4;
             cgc.gridwidth = 2;
+            cgc.weightx = 1;
+            cgc.weighty = 1;
+            cgc.fill = GridBagConstraints.BOTH;
             brDescription = new JTextArea();
             brDescription.setEditable(false);
             brDescription.setLineWrap(true);
             brDescription.setWrapStyleWord(true);
-            brDescription.setText("Select an item to view more details and bid!");
-            JScrollPane descPane = new JScrollPane(brDescription);
-            descPane.setPreferredSize(new Dimension(548, 384));
-            brDetails.add(descPane, cgc);
+            brDescription.setText("Select an item to see more details!");
+            JScrollPane brDescPane = new JScrollPane(brDescription);
+            brDescPane.setPreferredSize(new Dimension(435, 250));
+            brDetails.add(brDescPane, cgc);
 
+            cgc.fill = GridBagConstraints.HORIZONTAL;
+            cgc.weightx = 0;
+            cgc.weighty = 0;
             cgc.gridx = 0;
-            cgc.gridy = 3;
+            cgc.gridy  = 5;
             cgc.gridwidth = 1;
-            brSeller = new JLabel();
-            brDetails.add(brSeller, cgc);
+            brDetails.add(new JLabel("Start Time:"), cgc);
 
             cgc.gridx = 1;
-            cgc.gridy = 3;
-            brBidOptions = new JPanel();
+            cgc.gridy = 5;
+            brDetails.add(new JLabel("End Time:"), cgc);
 
-            JButton bid = new JButton("Bid!");
+            cgc.gridx = 0;
+            cgc.gridy = 6;
+            brDetails.add(brStartTime = new JTextField(15), cgc);
+            brStartTime.setEditable(false);
+
+            cgc.gridx = 1;
+            cgc.gridy = 6;
+            brDetails.add(brEndTime = new JTextField(15), cgc);
+            brEndTime.setEditable(false);
+
+            cgc.gridx = 0;
+            cgc.gridy = 7;
+            cgc.gridwidth = 2;
+            brBidOptions = new JPanel();
+            brBidOptions.setBorder(BorderFactory.createLineBorder(Color.black));
             brBidOptions.add(new JLabel("Bid Amount:"));
+            brBidOptions.add(brBidAmount = new JTextField(10));
+            JButton bid = new JButton("Place Bid");
             bid.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    placeBid();
+                    try {
+                        out.writeObject(new Message().new ItemBidRequest(loggedUser, Integer.valueOf(brBidAmount.getText()), brItemList.getSelectedValue()));
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
             });
-            brBidOptions.add(brBidAmount = new JTextField(25));
             brBidOptions.add(bid);
+            cgc.anchor = GridBagConstraints.LAST_LINE_END;
             brDetails.add(brBidOptions, cgc);
-            brBidOptions.setVisible(false);
 
             gc.gridx = 2;
             gc.gridy = 0;
             dashboard.add(brDetails, gc);
-
             return dashboard;
         }
 
@@ -457,7 +509,7 @@ public class Client {
             itemsWindow.setLayout(new GridBagLayout());
             GridBagConstraints gc = new GridBagConstraints();
 
-            iwItems = new JList<Item>(iwItemsModel = new UserItemListModel(requestedUserItems));
+            iwItems = new JList<Item>();
 
             iwItemsPane = new JScrollPane(iwItems);
             iwItems.addListSelectionListener(new ListSelectionListener() {
@@ -624,6 +676,17 @@ public class Client {
 
         }
 
+        public void getUserItems(int userID) {
+            try {
+                out.writeObject(new Message().new ItemRequestByUser(userID));
+                System.out.println("Getting items by user");
+                sleep(1000);
+                iwItems.setModel(new UserItemListModel(requestedUserItems));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         public void displayItemInfo() {
             if(selectedBrowseItem != null) {
                 brTitle.setText(selectedBrowseItem.getTitle());
@@ -636,7 +699,7 @@ public class Client {
                 brStartTime.setText(selectedBrowseItem.getStartTime().toString());
                 brEndTime.setText(selectedBrowseItem.getEndTime().toString());
                 brDescription.setText(selectedBrowseItem.getDescription());
-                brBidOptions.setVisible(true);
+                //brBidOptions.setVisible(true);
                 //seller.setText(selectedBrowseItem.getSeller().getUsername());
 
             }
@@ -706,13 +769,7 @@ public class Client {
             }
         }
 
-        public void getUserItems(int userID) {
-            try {
-                out.writeObject(new Message().new ItemRequestByUser(userID));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+
 
         public Boolean isStringInteger(String string) {
             try {
@@ -733,7 +790,12 @@ public class Client {
             }
 
             public int getSize() {
-                return modelItem.size();
+                if(modelItem == null){
+                    return 0;
+                } else {
+                    return modelItem.size();
+                }
+
             }
 
             public Item getElementAt(int index) {
@@ -746,9 +808,14 @@ public class Client {
             public ArrayList<Item> modelItem;
 
             public UserItemListModel(ArrayList<Item> modelItem) {this.modelItem = modelItem;}
-            public int getSize() {return modelItem.size();}
+            public int getSize() {
+                if(modelItem == null) {
+                    return 0;
+                } else {
+                    return modelItem.size();
+                }
+            }
             public Item getElementAt(int index) {return modelItem.get(index);}
-            public void addElement(Item item) {modelItem.add(item);}
         }
 
     }
