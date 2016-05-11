@@ -2,11 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9aba822b-eaba-4709-b659-bc0a6661c941" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Auction System/Client$LoginScreen$1.class" afterPath="$PROJECT_DIR$/out/production/Auction System/Client$LoginScreen$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Auction System/Client$LoginScreen.class" afterPath="$PROJECT_DIR$/out/production/Auction System/Client$LoginScreen.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Auction System/Client.class" afterPath="$PROJECT_DIR$/out/production/Auction System/Client.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Auction System/Server.class" afterPath="$PROJECT_DIR$/out/production/Auction System/Server.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Client.java" afterPath="$PROJECT_DIR$/src/Client.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Item.java" afterPath="$PROJECT_DIR$/src/Item.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/PersistanceLayer.java" afterPath="$PROJECT_DIR$/src/PersistanceLayer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Server.java" afterPath="$PROJECT_DIR$/src/Server.java" />
     </list>
     <ignored path="AuctionSystem.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -271,7 +271,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="settings.editor.selected.configurable" value="reference.projectsettings.compiler.excludes" />
+    <property name="settings.editor.selected.configurable" value="settings.github" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/src/eshgrthret.java" />
     <property name="project.structure.last.edited" value="Modules" />
@@ -696,7 +696,14 @@
       <option name="project" value="LOCAL" />
       <updated>1462924678093</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="getting bids to work">
+      <created>1463009937277</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1463009937277</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -783,7 +790,8 @@
     <MESSAGE value="tinkering, need to seperate and work on properly" />
     <MESSAGE value="Items screen added (wont add dynamically from server)" />
     <MESSAGE value="more stuff actually working" />
-    <option name="LAST_COMMIT_MESSAGE" value="more stuff actually working" />
+    <MESSAGE value="getting bids to work" />
+    <option name="LAST_COMMIT_MESSAGE" value="getting bids to work" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
