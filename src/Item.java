@@ -81,6 +81,7 @@ public class Item implements Serializable{
     public void setID(int id) {
         this.id = id;
     }
+    public void setDescription(String description) {this.description = description;}
 
     public String toString() {
         if(bids.isEmpty()) {

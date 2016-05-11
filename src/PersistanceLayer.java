@@ -3,6 +3,7 @@ import com.google.gson.Gson;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * Created by Joe on 28/04/2016.
@@ -63,6 +64,13 @@ public class PersistanceLayer {
 
             String line;
             while((line = br.readLine()) != null) {
+                Item newItem = gson.fromJson(line, Item.class);
+                for(Iterator<Item> it = itemsSet.iterator(); it.hasNext();) {
+                    Item item = it.next();
+                    if(item.getID() == newItem.getID()) {
+                        it.remove();
+                    }
+                }
                 itemsSet.add(gson.fromJson(line, Item.class));
             }
         } catch(Exception ex) {

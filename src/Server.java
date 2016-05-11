@@ -99,7 +99,14 @@ public class Server {
             if(request.bidder.getUserID() != request.bidItem.getHighestBid().getKey()){
                 if(request.bidItem.getStatus() == 1){
                     if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
+                        request.bidItem.getBids().put(request.bidder.getUserID(), request.bidAmount);
+                        try {
+                            PersistanceLayer.addItem(request.bidItem);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         return new Message().new ItemBidRequestResponse(true);
+
                     } else {
                         return new Message().new ItemBidRequestResponse(false, "Item Object rejected bid addition. (Client may not have updated bid)");
                     }

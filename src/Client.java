@@ -86,8 +86,11 @@ public class Client {
                 }
                 else if(msg instanceof Message.ItemBidRequestResponse) {
                     if(((Message.ItemBidRequestResponse) msg).successful) {
-                        out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
-                        mainWindow.displayItemInfo();
+                        //out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
+                        //mainWindow.displayItemInfo();
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(null, ((Message.ItemBidRequestResponse) msg).info);
                     }
                 }
                 else if(msg instanceof Message.ItemRequestByUserResponse) {
@@ -515,7 +518,7 @@ public class Client {
             iwItems.addListSelectionListener(new ListSelectionListener() {
                 @Override
                 public void valueChanged(ListSelectionEvent e) {
-                    //TODO display items
+                    displaySelectedUserItemInfo(iwItems.getSelectedValue());
                 }
             });
             gc.anchor = GridBagConstraints.FIRST_LINE_START;
@@ -558,7 +561,7 @@ public class Client {
             //igc.weightx = 1;
             //igc.fill = GridBagConstraints.HORIZONTAL;
             iwDetails.add(iwTitle = new JTextField(60), igc);
-            iwTitle.setEnabled(false);
+            iwTitle.setEditable(false);
 
             igc.gridx = 0;
             igc.gridy = 2;
@@ -577,7 +580,7 @@ public class Client {
             igc.gridx = 1;
             igc.gridy = 3;
             iwDetails.add(iwReserve = new JTextField(25), igc);
-            iwReserve.setEnabled(false);
+            iwReserve.setEditable(false);
 
             igc.gridx = 0;
             igc.gridy = 4;
@@ -646,12 +649,25 @@ public class Client {
                 }
             });
             iwButtons.add(iwEdit = new JButton("Edit Selected Item"));
+            iwEdit.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    iwDescription.setEditable(true);
+                    iwEndTime.setEnabled(true);
+                }
+            });
             iwEdit.setEnabled(false);
             iwButtons.add(iwSave = new JButton("Save Changes"));
             iwSave.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    submitNewItem();
+                    if(iwItems.getSelectedValue() == null) {
+                        submitNewItem();
+                    } else {
+                        editExistingItem(iwItems.getSelectedValue());
+                    }
+
+
                 }
             });
             iwSave.setEnabled(false);
@@ -674,6 +690,15 @@ public class Client {
                 e.printStackTrace();
             }
 
+        }
+
+        public void editExistingItem(Item item) {
+            item.setDescription(iwDescription.getText());
+            try {
+                PersistanceLayer.addItem(item);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         public void getUserItems(int userID) {
@@ -713,6 +738,16 @@ public class Client {
             }
         }
 
+        public void displaySelectedUserItemInfo(Item item){
+            iwTitle.setText(item.getTitle());
+            iwCategory.setSelectedItem(item.getCategory());
+            iwReserve.setText(String.valueOf(item.getReservePrice()));
+            iwDescription.setText(item.getDescription());
+            iwStartTime.setValue(item.getStartTime());
+            iwEndTime.setValue(item.getEndTime());
+            iwEdit.setEnabled(true);
+        }
+
         public void newItemSetup() {
             editingItem = true;
             iwCurrEdit = null;
@@ -721,9 +756,9 @@ public class Client {
             iwReserve.setText("");
             iwDescription.setText("");
 
-            iwTitle.setEnabled(true);
+            iwTitle.setEditable(true);
             iwCategory.setEnabled(true);
-            iwReserve.setEnabled(true);
+            iwReserve.setEditable(true);
             iwDescription.setEditable(true);
             iwStartTime.setEnabled(true);
             iwEndTime.setEnabled(true);
