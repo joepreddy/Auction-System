@@ -97,42 +97,25 @@ public class Server {
     }
 
     public static Message.ItemBidRequestResponse processItemBid(Message.ItemBidRequest request) {
-        /*if(request.bidAmount > request.bidItem.getHighestBid().getValue() && request.bidAmount > request.bidItem.getReservePrice()) {
-            if(request.bidder.getUserID() != request.bidItem.getHighestBid().getKey()){
-                if(request.bidItem.getStatus() == 1){
-                    if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
-                        request.bidItem.getBids().put(request.bidder.getUserID(), request.bidAmount);
-                        try {
-                            PersistanceLayer.addItem(request.bidItem);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return new Message().new ItemBidRequestResponse(true);
 
-                    } else {
-                        return new Message().new ItemBidRequestResponse(false, "Item Object rejected bid addition. (Client may not have updated bid)");
-                    }
-                } else {
-                    return new Message().new ItemBidRequestResponse(false, "Item is not open for bidding!");
-                }
-            } else {
-                return new Message().new ItemBidRequestResponse(false, "User already holds the highest bid!");
+        Item currentItem = null;
+        for(Item item : items) {
+            if(item.getID() == request.bidItem.getID()) {
+                currentItem = item;
             }
-        } else {
-            return new Message().new ItemBidRequestResponse(false, "There is a higher bid on this item!");
-        }*/
+        }
 
-        if(request.bidItem.getBids().isEmpty()) {
-            if(request.bidAmount > request.bidItem.getReservePrice()) {
-                if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
-                    if(request.bidder.getUserID() != request.bidItem.getSellerID()) {
+
+        if(currentItem.getBids().isEmpty()) {
+            if(request.bidAmount > currentItem.getReservePrice()) {
+                if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
+                    if(request.bidder.getUserID() != currentItem.getSellerID()) {
                         try {
-                            PersistanceLayer.addItem(request.bidItem);
-                            //items.add(request.bidItem);
+                            PersistanceLayer.addItem(currentItem);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        return new Message().new ItemBidRequestResponse(true, request.bidItem);
+                        return new Message().new ItemBidRequestResponse(true, currentItem);
                     }else {
                         return new Message().new ItemBidRequestResponse(false, "You may not bid on your own item!");
                     }
@@ -142,16 +125,16 @@ public class Server {
             } else {
                 return new Message().new ItemBidRequestResponse(false, "Your bid must be above the reserve price!");
             }
-        } else if(request.bidAmount > request.bidItem.getHighestBid().getAmount()) {
-            if(request.bidder.getUserID() != request.bidItem.getSellerID()) {
-                if(request.bidItem.getStatus() == 1) {
-                    if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)){
+        } else if(request.bidAmount > currentItem.getHighestBid().getAmount()) {
+            if(request.bidder.getUserID() != currentItem.getSellerID()) {
+                if(currentItem.getStatus() == 1) {
+                    if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)){
                         try {
-                            PersistanceLayer.addItem(request.bidItem);
+                            PersistanceLayer.addItem(currentItem);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        return new Message().new ItemBidRequestResponse(true, request.bidItem);
+                        return new Message().new ItemBidRequestResponse(true, currentItem);
                     } else {
                         return new Message().new ItemBidRequestResponse(false, "There was a problem processing your bid on the server.");
                     }

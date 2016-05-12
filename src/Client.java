@@ -1,6 +1,7 @@
 import jdk.nashorn.internal.scripts.JO;
 
 //TODO WORK OUT HOW TO GET THE JLIST TO REFRESH - ALSO CREATE GUI AND ACTIVITY LOGGING FOR SERVER
+//TODO NEED TO UPDATE THE BIDS IN THE SERVERSIDE ITEMS LIST
 
 
 
@@ -95,7 +96,7 @@ public class Client {
                         out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
                         //mainWindow.populateBrowseItemsList();
                         //mainWindow.brItemList.getSelectedValue().setBids(((Message.ItemBidRequestResponse) msg).item.getBids());
-                        //mainWindow.displayItemInfo();
+                        mainWindow.displayItemInfo();
 
                         System.out.println("Bid was successful");
                     }
