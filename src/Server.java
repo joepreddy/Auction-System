@@ -1,10 +1,13 @@
 import javax.swing.*;
+import javax.swing.Timer;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static java.lang.Thread.currentThread;
 import static java.lang.Thread.sleep;
@@ -18,6 +21,7 @@ public class Server {
     private static HashSet<Client> clients = new HashSet<Client>();
     private static ArrayList<Item> items = new ArrayList<Item>();
     private static ServerSocket listener;
+    private static ServerGUI gui = new ServerGUI();
 
 
 
@@ -26,6 +30,7 @@ public class Server {
 
     public Server() throws Exception{
         System.out.println("Starting server...");
+        gui.log("Starting server...");
         users = PersistanceLayer.loadAllUsers();
         //items.add(new Item());
         items = PersistanceLayer.loadAllItems();
@@ -34,8 +39,10 @@ public class Server {
         try {
             while (true) {
                 System.out.println("Server listening...");
+                gui.log("New comms thread launched, looking for a client to connect to...");
                 new Comms(listener.accept()).start();
                 System.out.println("Connection established...");
+                gui.log("Connection to client established...");
             }
 
         }catch (IOException e) {
@@ -52,11 +59,14 @@ public class Server {
         Server server = new Server();
     }
 
+
     public static Message.UserAuthResponse authenticateUser(Message.UserAuthRequest request) {
         for(User u : users) {
             if(u.getUsername().equals(request.username)) {
                 if(Arrays.equals(u.getPassword(), request.password)) {
+                    gui.log("Authenticated user: " + u.getUserID() + ", " + u.getUsername());
                     return new Message().new UserAuthResponse(u, true);
+
                 }
                 else {
                     return new Message().new UserAuthResponse(false, "Incorrect Password!");
@@ -79,7 +89,7 @@ public class Server {
         } catch (Exception e) {
             System.out.println(e);
         }
-
+        gui.log("Registered new user: " + user.getUserID() + ", "  + user.getUsername());
         return new Message().new UserRegistrationResponse(true, user);
         //return new Message().new UserRegistrationResponse(false, "Unknown Error!");
     }
@@ -123,6 +133,7 @@ public class Server {
                     if(request.bidder.getUserID() != currentItem.getSellerID()) {
                         try {
                             items.add(currentItem);
+                            gui.log("Bid placed on item " + currentItem.getID() + " by user " + request.bidder.getUserID() + " of amount " + request.bidAmount);
                             PersistanceLayer.addItem(currentItem);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -143,6 +154,7 @@ public class Server {
                     if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)){
                         try {
                             items.add(currentItem);
+                            gui.log("Bid placed on item " + currentItem.getID() + " by user " + request.bidder.getUserID() + " of amount " + request.bidAmount);
                             PersistanceLayer.addItem(currentItem);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -181,6 +193,7 @@ public class Server {
     public static Message.ItemListingRequestResponse listItem(Message.ItemListingRequest request) {
         request.listingItem.setID(items.size()+1);
         items.add(request.listingItem);
+        gui.log("New listing created (" + request.listingItem.getID() + "), by user " + request.listingItem.getSellerID() + " with a reserve of £" + request.listingItem.getReservePrice());
         try {
             PersistanceLayer.addItem(request.listingItem);
         } catch (Exception e) {
@@ -189,9 +202,50 @@ public class Server {
         return new Message().new ItemListingRequestResponse(true, request.listingItem);
     }
 
-    class ServerGUI extends JFrame {
+    static class ServerGUI extends JFrame {
 
+        Container cont;
+        JTextArea log;
+        JLabel timer;
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+
+        public ServerGUI() {
+            init();
+        }
+
+        public void init(){
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setPreferredSize(new Dimension(600,800));
+            cont = getContentPane();
+            cont.setLayout(new FlowLayout());
+            log = new JTextArea();
+            log.setPreferredSize(new Dimension(580, 700));
+            cont.add(timer = new JLabel("Current Time:"));
+            JScrollPane logPane = new JScrollPane(log);
+            cont.add(logPane);
+
+
+
+
+            pack();
+            setVisible(true);
+
+            new Timer(1000, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Calendar now = Calendar.getInstance();
+                    timer.setText("Current Time: " + dateFormat.format(now.getTime()));
+                }
+            }).start();
+        }
+        public void log(String string) {
+            Calendar now = Calendar.getInstance();
+            log.append(dateFormat.format(now.getTime()) + ": " + string + "\n");
+        }
     }
+
+
 
 
 
