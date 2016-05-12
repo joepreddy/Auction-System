@@ -336,7 +336,6 @@ public class Client {
         Boolean editingItem;
         Item iwCurrEdit;
         JCheckBox iwTimeNow;
-        UserItemListModel iwItemsModel;
 
         public MainWindow() {
             super("XYZ Auction System");
@@ -368,8 +367,12 @@ public class Client {
                         System.out.println("My Items Pressed");
                         getUserItems(loggedUser.getUserID());
                     }
+                    if(menu.getSelectedIndex() == 0){
+                        populateBrowseItemsList();
+                    }
                 }
             });
+
             pack();
 
         }
@@ -695,6 +698,7 @@ public class Client {
             try {
                 out.writeObject(new Message().new ItemRequest(brCategories.getSelectedValue()));
                 System.out.println("Attempting to get items");
+                sleep(1000);
                 brItemList.setModel(new ItemListModel(currentDispItems));
             } catch (Exception e) {
                 e.printStackTrace();

@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -172,6 +173,10 @@ public class Server {
             e.printStackTrace();
         }
         return new Message().new ItemListingRequestResponse(true, request.listingItem);
+    }
+
+    class ServerGUI extends JFrame {
+
     }
 
 
