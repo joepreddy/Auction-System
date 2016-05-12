@@ -93,10 +93,13 @@ public class Client {
                 }
                 else if(msg instanceof Message.ItemBidRequestResponse) {
                     if(((Message.ItemBidRequestResponse) msg).successful) {
-                        out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
+                        //out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
                         //mainWindow.populateBrowseItemsList();
                         //mainWindow.brItemList.getSelectedValue().setBids(((Message.ItemBidRequestResponse) msg).item.getBids());
-                        mainWindow.displayItemInfo();
+                        System.out.println("Recieved " + ((Message.ItemBidRequestResponse) msg).item.toString());
+                        //selectedBrowseItem = ((Message.ItemBidRequestResponse) msg).item;
+                        //mainWindow.brCurrBid.setText(String.valueOf("Current Bid: " + mainWindow.brBidAmount.getText()));
+                        //mainWindow.displayItemInfo();
 
                         System.out.println("Bid was successful");
                     }
@@ -120,6 +123,7 @@ public class Client {
             catch (Exception ex) {
                 ex.printStackTrace();
             }
+            out.reset();
 
         }
     }
@@ -309,6 +313,7 @@ public class Client {
         //BROWSE TAB VARIABLES
         JList<String> brCategories;
         JList<Item> brItemList;
+        JList<User> brSellerList;
         JPanel brDetails;
         JPanel brBidOptions;
         JTextField brTitle;
@@ -398,7 +403,6 @@ public class Client {
             gc.gridy = 0;
             dashboard.add(cat, gc);
 
-
             brItemList = new JList();
             JScrollPane items = new JScrollPane(brItemList);
             brItemList.addListSelectionListener(new ListSelectionListener() {
@@ -409,6 +413,11 @@ public class Client {
                 }
             });
             items.setPreferredSize(new Dimension(300, 760));
+
+
+
+
+
             gc.gridx = 1;
             gc.gridy = 0;
             dashboard.add(items, gc);

@@ -16,7 +16,7 @@ public class Item implements Serializable{
     private Date startTime;
     private Date endTime;
     private int status; //0=Not Active Yet, 1 = Active, 2=Expired
-    private ArrayList<Bid> bids = new ArrayList<Bid>();
+    public ArrayList<Bid> bids = new ArrayList<Bid>();
     //private LinkedHashMap<Integer, Integer> bids = new LinkedHashMap<>();
 
     /*public Item(String title, String description, String category){

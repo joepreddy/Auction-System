@@ -68,6 +68,7 @@ public class Comms extends Thread{
                     System.out.println("Connection Lost!");
                     break;
                 }
+                out.reset();
 
 
             }

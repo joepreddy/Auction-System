@@ -4,7 +4,9 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 
+import static java.lang.Thread.currentThread;
 import static java.lang.Thread.sleep;
 
 /**
@@ -100,11 +102,19 @@ public class Server {
     public static Message.ItemBidRequestResponse processItemBid(Message.ItemBidRequest request) {
 
         Item currentItem = null;
-        for(Item item : items) {
+        /*for(Item item : items) {
             if(item.getID() == request.bidItem.getID()) {
                 currentItem = item;
             }
+        }*/
+        for(Iterator<Item> it = items.iterator(); it.hasNext();){
+            Item item = it.next();
+            if(item.getID() == request.bidItem.getID()) {
+                currentItem = item;
+                it.remove();
+            }
         }
+
 
 
         if(currentItem.getBids().isEmpty()) {
@@ -112,6 +122,7 @@ public class Server {
                 if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
                     if(request.bidder.getUserID() != currentItem.getSellerID()) {
                         try {
+                            items.add(currentItem);
                             PersistanceLayer.addItem(currentItem);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -131,10 +142,13 @@ public class Server {
                 if(currentItem.getStatus() == 1) {
                     if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)){
                         try {
+                            items.add(currentItem);
                             PersistanceLayer.addItem(currentItem);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+
+                        System.out.println("Returning " + currentItem.toString());
                         return new Message().new ItemBidRequestResponse(true, currentItem);
                     } else {
                         return new Message().new ItemBidRequestResponse(false, "There was a problem processing your bid on the server.");
