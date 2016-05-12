@@ -129,22 +129,27 @@ public class Server {
 
         if(currentItem.getBids().isEmpty()) {
             if(request.bidAmount > currentItem.getReservePrice()) {
-                if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
-                    if(request.bidder.getUserID() != currentItem.getSellerID()) {
-                        try {
-                            items.add(currentItem);
-                            gui.log("Bid placed on item " + currentItem.getID() + " by user " + request.bidder.getUserID() + " of amount " + request.bidAmount);
-                            PersistanceLayer.addItem(currentItem);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                if(currentItem.getStatus() == 1) {
+                    if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
+                        if(request.bidder.getUserID() != currentItem.getSellerID()) {
+                            try {
+                                items.add(currentItem);
+                                gui.log("Bid placed on item " + currentItem.getID() + " by user " + request.bidder.getUserID() + " of amount " + request.bidAmount);
+                                PersistanceLayer.addItem(currentItem);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            return new Message().new ItemBidRequestResponse(true, currentItem);
+                        }else {
+                            return new Message().new ItemBidRequestResponse(false, "You may not bid on your own item!");
                         }
-                        return new Message().new ItemBidRequestResponse(true, currentItem);
-                    }else {
-                        return new Message().new ItemBidRequestResponse(false, "You may not bid on your own item!");
+                    } else {
+                        return new Message().new ItemBidRequestResponse(false, "There was a problem authenticating this bid with the server!");
                     }
                 } else {
-                    return new Message().new ItemBidRequestResponse(false, "There was a problem authenticating this bid with the server!");
+                    return new Message().new ItemBidRequestResponse(false, "This listing has either expired, or has not yet started!");
                 }
+
             } else {
                 return new Message().new ItemBidRequestResponse(false, "Your bid must be above the reserve price!");
             }
@@ -193,7 +198,7 @@ public class Server {
     public static Message.ItemListingRequestResponse listItem(Message.ItemListingRequest request) {
         request.listingItem.setID(items.size()+1);
         items.add(request.listingItem);
-        gui.log("New listing created (" + request.listingItem.getID() + "), by user " + request.listingItem.getSellerID() + " with a reserve of £" + request.listingItem.getReservePrice());
+        gui.log("New listing created (" + request.listingItem.getID() + "), by user " + request.listingItem.getSellerID() + " with a reserve of £" + request.listingItem.getReservePrice() + " (Status " + request.listingItem.getStatus() + ")");
         try {
             PersistanceLayer.addItem(request.listingItem);
         } catch (Exception e) {
@@ -201,6 +206,68 @@ public class Server {
         }
         return new Message().new ItemListingRequestResponse(true, request.listingItem);
     }
+
+    public static void verifyItemStatus() {
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Calendar now = Calendar.getInstance();
+        for(Item item : items) {
+            if(item.getStatus() == 0) {
+                if(now.getTime().after(item.getStartTime())) {
+                    if(now.getTime().before(item.getEndTime())) {
+                        item.setStatus(1);
+                        try {
+                            PersistanceLayer.addItem(item);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        gui.log("Bidding for item " + item.getID() + " has commenced. It will close at " + dateFormat.format(item.getEndTime()));
+                    }
+                }
+            } else if(item.getStatus() == 1) {
+                if(now.getTime().after(item.getEndTime())) {
+                    item.setStatus(2);
+                    try {
+                        PersistanceLayer.addItem(item);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    if(item.bids.isEmpty()) {
+                        gui.log("Bidding on the item " + item.getID() + "has ended. There were no winning bids.");
+                    } else {
+                        gui.log("Bidding for the item " + item.getID() + " has ended. The winning bid was user" + item.getHighestBid().getBidderID() + " who bid £" + item.getHighestBid().getAmount());
+                    }
+
+                }
+            }
+        }
+    }
+
+    public static void showWonItemReport() {
+        JFrame frame = new JFrame("Won Items Report");
+        JTextArea reportArea;
+        frame.setPreferredSize(new Dimension(600, 600));
+        frame.getContentPane().setLayout(new FlowLayout());
+        JScrollPane reportPane = new JScrollPane(reportArea = new JTextArea());
+        reportArea.setLineWrap(true);
+        reportArea.setWrapStyleWord(true);
+        reportArea.setPreferredSize(new Dimension(580, 580));
+        frame.getContentPane().add(reportPane);
+
+        for(Item item : items) {
+            if(item.getStatus() == 2) {
+                for(User user : users) {
+                    if(item.getHighestBid().getBidderID() == user.getUserID()) {
+                        reportArea.append(String.format("Item ID:%d (%s) Won by %s %s on %s with a bid of £%d \n", item.getID(), item.getTitle(), user.getFirstName(), user.getLastName(), String.valueOf(item.getEndTime()), item.getHighestBid().getAmount()));
+                    }
+                }
+            }
+        }
+
+        frame.pack();
+        frame.setVisible(true);
+    }
+
 
     static class ServerGUI extends JFrame {
 
@@ -224,6 +291,14 @@ public class Server {
             cont.add(timer = new JLabel("Current Time:"));
             JScrollPane logPane = new JScrollPane(log);
             cont.add(logPane);
+            JButton report = new JButton("Show Item Report");
+            report.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showWonItemReport();
+                }
+            });
+            cont.add(report);
 
 
 
@@ -236,6 +311,7 @@ public class Server {
                 public void actionPerformed(ActionEvent e) {
                     Calendar now = Calendar.getInstance();
                     timer.setText("Current Time: " + dateFormat.format(now.getTime()));
+                    verifyItemStatus();
                 }
             }).start();
         }

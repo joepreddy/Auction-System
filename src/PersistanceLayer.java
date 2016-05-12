@@ -78,15 +78,6 @@ public class PersistanceLayer {
         } catch(Exception ex) {
             ex.printStackTrace();
         }
-        /*for(Item item : itemsSet) {
-            item.verifyStatus();
-
-            for(Bid bid : loadAllBids()) {
-                if(item.getID() == bid.getItemID()) {
-                    item.addBid(bid.getBidderID(), bid.getAmount());
-                }
-            }
-        }*/
 
 
         return itemsSet;

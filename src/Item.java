@@ -82,6 +82,7 @@ public class Item implements Serializable{
         this.id = id;
     }
     public void setDescription(String description) {this.description = description;}
+    public void setStatus(int status){this.status = status;}
 
     public String toString() {
         if(bids.isEmpty()) {
@@ -123,15 +124,5 @@ public class Item implements Serializable{
         }
     }
 
-    public void verifyStatus(){
-        Date dateNow = new Date();
-        if(dateNow.after(startTime) && dateNow.before(endTime)) {
-            status = 1;
-        } else if (dateNow.after(endTime)) {
-            status = 2;
-        } else {
-            status = 0;
-        }
-    }
 
 }

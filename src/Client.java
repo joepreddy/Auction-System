@@ -295,6 +295,7 @@ public class Client {
 
         public void loginUser(String username, char[] password) throws Exception{
             out.writeObject(new Message().new UserAuthRequest(username, password));
+            this.setVisible(false);
         }
 
         public void registerUser(String firstName, String lastName, String username, char[] password) throws Exception{
@@ -541,6 +542,7 @@ public class Client {
                 @Override
                 public void valueChanged(ListSelectionEvent e) {
                     displaySelectedUserItemInfo(iwItems.getSelectedValue());
+                    disableControls();
                 }
             });
             gc.anchor = GridBagConstraints.FIRST_LINE_START;
@@ -676,6 +678,7 @@ public class Client {
                 public void actionPerformed(ActionEvent e) {
                     iwDescription.setEditable(true);
                     iwEndTime.setEnabled(true);
+                    iwSave.setEnabled(true);
                 }
             });
             iwEdit.setEnabled(false);
@@ -688,6 +691,8 @@ public class Client {
                     } else {
                         editExistingItem(iwItems.getSelectedValue());
                     }
+                    disableControls();
+                    iwSave.setEnabled(false);
 
 
                 }
@@ -791,6 +796,17 @@ public class Client {
             iwEndTime.setEnabled(true);
             iwSave.setEnabled(true);
             iwTimeNow.setEnabled(true);
+        }
+
+        public void disableControls() {
+            iwTitle.setEditable(false);
+            iwCategory.setEnabled(false);
+            iwReserve.setEditable(false);
+            iwDescription.setEditable(false);
+            iwStartTime.setEnabled(false);
+            iwEndTime.setEnabled(false);
+            iwSave.setEnabled(false);
+            iwTimeNow.setEnabled(false);
         }
 
         public void submitNewItem(){
