@@ -76,6 +76,9 @@ public class PersistanceLayer {
         } catch(Exception ex) {
             ex.printStackTrace();
         }
+        for(Item item : itemsSet) {
+            item.verifyStatus();
+        }
         return itemsSet;
     }
 

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import static java.lang.Thread.sleep;
+
 /**
  * Created by Joe on 19/04/2016.
  */
@@ -95,7 +97,7 @@ public class Server {
     }
 
     public static Message.ItemBidRequestResponse processItemBid(Message.ItemBidRequest request) {
-        if(request.bidAmount > request.bidItem.getHighestBid().getValue() && request.bidAmount > request.bidItem.getReservePrice()) {
+        /*if(request.bidAmount > request.bidItem.getHighestBid().getValue() && request.bidAmount > request.bidItem.getReservePrice()) {
             if(request.bidder.getUserID() != request.bidItem.getHighestBid().getKey()){
                 if(request.bidItem.getStatus() == 1){
                     if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
@@ -118,6 +120,48 @@ public class Server {
             }
         } else {
             return new Message().new ItemBidRequestResponse(false, "There is a higher bid on this item!");
+        }*/
+
+        if(request.bidItem.getBids().isEmpty()) {
+            if(request.bidAmount > request.bidItem.getReservePrice()) {
+                if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
+                    if(request.bidder.getUserID() != request.bidItem.getSellerID()) {
+                        try {
+                            PersistanceLayer.addItem(request.bidItem);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return new Message().new ItemBidRequestResponse(true, request.bidItem);
+                    }else {
+                        return new Message().new ItemBidRequestResponse(false, "You may not bid on your own item!");
+                    }
+                } else {
+                    return new Message().new ItemBidRequestResponse(false, "There was a problem authenticating this bid with the server!");
+                }
+            } else {
+                return new Message().new ItemBidRequestResponse(false, "Your bid must be above the reserve price!");
+            }
+        } else if(request.bidAmount > request.bidItem.getHighestBid().getValue()) {
+            if(request.bidder.getUserID() != request.bidItem.getSellerID()) {
+                if(request.bidItem.getStatus() == 1) {
+                    if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)){
+                        try {
+                            PersistanceLayer.addItem(request.bidItem);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return new Message().new ItemBidRequestResponse(true, request.bidItem);
+                    } else {
+                        return new Message().new ItemBidRequestResponse(false, "There was a problem processing your bid on the server.");
+                    }
+                } else {
+                    return new Message().new ItemBidRequestResponse(false, "This listing has either expired, or has not yet started!");
+                }
+            } else {
+                return new Message().new ItemBidRequestResponse(false, "You can not bid on your own listing!");
+            }
+        } else {
+            return new Message().new ItemBidRequestResponse(false, "Your bid must be higher than the current bid!");
         }
     }
 

@@ -82,6 +82,7 @@ public class Item implements Serializable{
         this.id = id;
     }
     public void setDescription(String description) {this.description = description;}
+    public void setBids(LinkedHashMap<Integer, Integer> bids) {this.bids =bids;}
 
     public String toString() {
         if(bids.isEmpty()) {
@@ -104,12 +105,23 @@ public class Item implements Serializable{
     }
 
     public Boolean addBid(int userID, int amount) {
-        if(amount > getHighestBid().getValue()) {
+        if(bids.isEmpty() || amount > getHighestBid().getValue()) {
             bids.put(userID, amount);
             return true;
         }
         else {
             return false;
+        }
+    }
+
+    public void verifyStatus(){
+        Date dateNow = new Date();
+        if(dateNow.after(startTime) && dateNow.before(endTime)) {
+            status = 1;
+        } else if (dateNow.after(endTime)) {
+            status = 2;
+        } else {
+            status = 0;
         }
     }
 

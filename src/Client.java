@@ -87,7 +87,10 @@ public class Client {
                 else if(msg instanceof Message.ItemBidRequestResponse) {
                     if(((Message.ItemBidRequestResponse) msg).successful) {
                         //out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
-                        //mainWindow.displayItemInfo();
+                        //mainWindow.populateBrowseItemsList();
+                        mainWindow.brItemList.getSelectedValue().setBids(((Message.ItemBidRequestResponse) msg).item.getBids());
+                        mainWindow.displayItemInfo();
+                        System.out.println("Bid was successful");
                     }
                     else {
                         JOptionPane.showMessageDialog(null, ((Message.ItemBidRequestResponse) msg).info);
@@ -289,7 +292,6 @@ public class Client {
 
     }
 
-    //TODO seperate mainwindow elements into seperate sub-classes
 
     class MainWindow extends JFrame {
 
@@ -710,6 +712,10 @@ public class Client {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        public void refreshListings() {
+
         }
 
         public void displayItemInfo() {

@@ -102,12 +102,15 @@ public class Message implements Serializable{
     }
 
     class ItemBidRequestResponse extends Message {
+        Item item;
         Boolean successful;
         String info;
 
         public ItemBidRequestResponse(Boolean successful) {
             this.successful = successful;
         }
+
+        public ItemBidRequestResponse(Boolean successful, Item item) {this.successful = successful; this.item = item;}
 
         public ItemBidRequestResponse(Boolean successful, String info) {
             this.successful = successful;
