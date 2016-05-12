@@ -128,6 +128,7 @@ public class Server {
                     if(request.bidder.getUserID() != request.bidItem.getSellerID()) {
                         try {
                             PersistanceLayer.addItem(request.bidItem);
+                            //items.add(request.bidItem);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -141,7 +142,7 @@ public class Server {
             } else {
                 return new Message().new ItemBidRequestResponse(false, "Your bid must be above the reserve price!");
             }
-        } else if(request.bidAmount > request.bidItem.getHighestBid().getValue()) {
+        } else if(request.bidAmount > request.bidItem.getHighestBid().getAmount()) {
             if(request.bidder.getUserID() != request.bidItem.getSellerID()) {
                 if(request.bidItem.getStatus() == 1) {
                     if(request.bidItem.addBid(request.bidder.getUserID(), request.bidAmount)){

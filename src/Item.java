@@ -16,8 +16,8 @@ public class Item implements Serializable{
     private Date startTime;
     private Date endTime;
     private int status; //0=Not Active Yet, 1 = Active, 2=Expired
-    //private ArrayList<Bid> bids = new ArrayList<Bid>();
-    private LinkedHashMap<Integer, Integer> bids = new LinkedHashMap<>();
+    private ArrayList<Bid> bids = new ArrayList<Bid>();
+    //private LinkedHashMap<Integer, Integer> bids = new LinkedHashMap<>();
 
     /*public Item(String title, String description, String category){
         this.title = title;
@@ -73,8 +73,8 @@ public class Item implements Serializable{
     public int getReservePrice() {return reservePrice;}
     public Date getStartTime(){return startTime;}
     public Date getEndTime() {return endTime;}
-    //public ArrayList<Bid>  getBids() {return bids;}
-    public LinkedHashMap<Integer, Integer> getBids(){return bids;}
+    public ArrayList<Bid>  getBids() {return bids;}
+    //public LinkedHashMap<Integer, Integer> getBids(){return bids;}
     public int getStatus(){return status;}
     public int getID(){return id;}
 
@@ -82,19 +82,18 @@ public class Item implements Serializable{
         this.id = id;
     }
     public void setDescription(String description) {this.description = description;}
-    public void setBids(LinkedHashMap<Integer, Integer> bids) {this.bids =bids;}
 
     public String toString() {
         if(bids.isEmpty()) {
             return title + "     |     No Current Bids!";
         }
         else {
-            return title + "     |     Current Bid: £" + getHighestBid().getValue();
+            return title + "     |     Current Bid: £" + getHighestBid().getAmount();
         }
 
     }
 
-    public Map.Entry<Integer, Integer> getHighestBid() {
+    /*public Map.Entry<Integer, Integer> getHighestBid() {
         Map.Entry<Integer, Integer> max = null;
         for(Map.Entry<Integer, Integer> entry : bids.entrySet()) {
             if(max == null || entry.getValue() > max.getValue()) {
@@ -102,11 +101,21 @@ public class Item implements Serializable{
             }
         }
         return max;
+    }*/
+
+    public Bid getHighestBid() {
+        Bid max = null;
+        for(Bid bid : bids) {
+            if(max == null || bid.getAmount() > max.getAmount()) {
+                max = bid;
+            }
+        }
+        return max;
     }
 
     public Boolean addBid(int userID, int amount) {
-        if(bids.isEmpty() || amount > getHighestBid().getValue()) {
-            bids.put(userID, amount);
+        if(bids.isEmpty() || amount > getHighestBid().getAmount()) {
+            bids.add(new Bid(id, userID, amount));
             return true;
         }
         else {

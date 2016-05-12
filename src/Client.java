@@ -1,5 +1,11 @@
 import jdk.nashorn.internal.scripts.JO;
 
+//TODO WORK OUT HOW TO GET THE JLIST TO REFRESH - ALSO CREATE GUI AND ACTIVITY LOGGING FOR SERVER
+
+
+
+
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
@@ -86,10 +92,11 @@ public class Client {
                 }
                 else if(msg instanceof Message.ItemBidRequestResponse) {
                     if(((Message.ItemBidRequestResponse) msg).successful) {
-                        //out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
+                        out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
                         //mainWindow.populateBrowseItemsList();
-                        mainWindow.brItemList.getSelectedValue().setBids(((Message.ItemBidRequestResponse) msg).item.getBids());
-                        mainWindow.displayItemInfo();
+                        //mainWindow.brItemList.getSelectedValue().setBids(((Message.ItemBidRequestResponse) msg).item.getBids());
+                        //mainWindow.displayItemInfo();
+
                         System.out.println("Bid was successful");
                     }
                     else {
@@ -722,7 +729,7 @@ public class Client {
             if(selectedBrowseItem != null) {
                 brTitle.setText(selectedBrowseItem.getTitle());
                 if(!selectedBrowseItem.getBids().isEmpty()) {
-                    brCurrBid.setText("Current Bid: " + String.valueOf(selectedBrowseItem.getHighestBid().getValue()));
+                    brCurrBid.setText("Current Bid: " + String.valueOf(selectedBrowseItem.getHighestBid().getAmount()));
                 }
                 else {
                     brCurrBid.setText("Reserve Price: " + String.valueOf(selectedBrowseItem.getReservePrice()));

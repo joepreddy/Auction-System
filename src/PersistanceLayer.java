@@ -13,6 +13,7 @@ public class PersistanceLayer {
     private static Gson gson = new Gson();
     private static File users = new File("users.json");
     private static File items = new File("items.json");
+    private static File bids = new File("bids.json");
 
     public static void addUser(User user) throws Exception{
         String userData = gson.toJson(user);
@@ -56,6 +57,7 @@ public class PersistanceLayer {
         bw.close();
     }
 
+
     public static ArrayList<Item> loadAllItems() {
         ArrayList<Item> itemsSet = new ArrayList<>();
 
@@ -76,10 +78,49 @@ public class PersistanceLayer {
         } catch(Exception ex) {
             ex.printStackTrace();
         }
-        for(Item item : itemsSet) {
+        /*for(Item item : itemsSet) {
             item.verifyStatus();
-        }
+
+            for(Bid bid : loadAllBids()) {
+                if(item.getID() == bid.getItemID()) {
+                    item.addBid(bid.getBidderID(), bid.getAmount());
+                }
+            }
+        }*/
+
+
         return itemsSet;
     }
+
+    public static void addBid(Bid bid) throws Exception {
+        String bidData = gson.toJson(bid);
+        System.out.println(bidData);
+
+        bids.createNewFile();
+
+        FileWriter fw = new FileWriter(bids, true);
+        BufferedWriter bw = new BufferedWriter(fw);
+        bw.write(bidData+"\n");
+        bw.close();
+    }
+
+    public static ArrayList<Bid> loadAllBids() {
+        ArrayList<Bid> bidsSet = new ArrayList<>();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(bids));
+
+            String line;
+            while((line=br.readLine()) != null) {
+                bidsSet.add(gson.fromJson(line, Bid.class));
+            }
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return bidsSet;
+    }
+
 
 }
