@@ -1,14 +1,4 @@
-import jdk.nashorn.internal.scripts.JO;
-
-//TODO WORK OUT HOW TO GET THE JLIST TO REFRESH - ALSO CREATE GUI AND ACTIVITY LOGGING FOR SERVER
-//TODO NEED TO UPDATE THE BIDS IN THE SERVERSIDE ITEMS LIST
-
-
-
-
-
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -20,8 +10,12 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
-
 import static java.lang.Thread.sleep;
+
+//// Joe Preddy - jpp1g15 ////
+///     Programming 2    ////
+
+
 
 public class Client {
 
@@ -37,6 +31,7 @@ public class Client {
     private MainWindow mainWindow;
 
     private ArrayList<Item> requestedUserItems;
+    ArrayList<Item> biddedItems;
 
     public Client() {
         LoginScreen login = new LoginScreen();
@@ -47,22 +42,29 @@ public class Client {
         }
     }
 
+    //SOCKETS ARE USED THROUGHOUT THE APPLICATION. THE ONLY FILES USED ARE FOR DATA PERSISTANCE, AND ARE ONLY READ FROM
+    //ON PROGRAM START.
+
+    //The sockets send serialized objects rather than strings, allowing me to send whole user, item and other objects
+    //without disassembling and reassembling them
+
+    //Connect to the server on the chosen port
     private void run() throws IOException{
         Socket socket = new Socket("localhost", 1224);
-        //in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());
 
+        //Perpetual loop - processes messages from the server and handles accordingly
         while(true) {
-            //System.out.println("Connecting to server...");
             try {
+                //Confirm connection
                 Message msg = (Message)in.readObject();
                 if(msg instanceof Message.ConnectionRequest) {
                     System.out.println("Connection request received");
                     ((Message.ConnectionRequest) msg).successful = true;
                     out.writeObject(msg);
-                    //return;
                 }
+                //COnfirm authentication
                 else if(msg instanceof Message.UserAuthResponse) {
                     if(((Message.UserAuthResponse) msg).successful) {
                         System.out.println("Load client!");
@@ -75,6 +77,7 @@ public class Client {
                     }
                     //return;
                 }
+                //Confirm registration
                 else if(msg instanceof Message.UserRegistrationResponse) {
                     if(((Message.UserRegistrationResponse) msg).successful) {
                         System.out.println("User registered successfully");
@@ -83,6 +86,7 @@ public class Client {
                         System.out.println(((Message.UserRegistrationResponse) msg).info);
                     }
                 }
+                //Return requested items
                 else if(msg instanceof Message.ItemRequestResponse) {
                     if(((Message.ItemRequestResponse)msg).successful) {
                         currentDispItems = ((Message.ItemRequestResponse) msg).items;
@@ -91,15 +95,10 @@ public class Client {
                         System.out.println(((Message.ItemRequestResponse) msg).info);
                     }
                 }
+                //Process bid
                 else if(msg instanceof Message.ItemBidRequestResponse) {
                     if(((Message.ItemBidRequestResponse) msg).successful) {
-                        //out.writeObject(new Message().new ItemRequest(mainWindow.brCategories.getSelectedValue()));
-                        //mainWindow.populateBrowseItemsList();
-                        //mainWindow.brItemList.getSelectedValue().setBids(((Message.ItemBidRequestResponse) msg).item.getBids());
                         System.out.println("Recieved " + ((Message.ItemBidRequestResponse) msg).item.toString());
-                        //selectedBrowseItem = ((Message.ItemBidRequestResponse) msg).item;
-                        //mainWindow.brCurrBid.setText(String.valueOf("Current Bid: " + mainWindow.brBidAmount.getText()));
-                        //mainWindow.displayItemInfo();
 
                         System.out.println("Bid was successful");
                     }
@@ -107,14 +106,18 @@ public class Client {
                         JOptionPane.showMessageDialog(null, ((Message.ItemBidRequestResponse) msg).info);
                     }
                 }
+
                 else if(msg instanceof Message.ItemRequestByUserResponse) {
                     if(((Message.ItemRequestByUserResponse) msg).successful) {
                         requestedUserItems = ((Message.ItemRequestByUserResponse) msg).items;
 
 
                     } else {
-                        System.out.println(((Message.ItemRequestByUserResponse) msg).info);
+                        JOptionPane.showMessageDialog(null,((Message.ItemRequestByUserResponse) msg).info);
                     }
+                }
+                else if(msg instanceof Message.BiddedItemRequestResponse) {
+                    biddedItems = ((Message.BiddedItemRequestResponse) msg).items;
                 }
                 else if (msg instanceof Message.ItemListingRequestResponse) {
                     System.out.println("Item successfully added");
@@ -161,6 +164,9 @@ public class Client {
 
         public void createLoginPanel(){
 
+            //ALL GUI CODE THROUGHOUT THE APPLICATION HAS BEEN CREATED MANUALLY
+            //NO GUI BUILDERS WERE USED (gridbag is a pain in the arse though)
+
             loginPanel = new JPanel();
             loginPanel.setLayout(new GridBagLayout());
 
@@ -196,6 +202,7 @@ public class Client {
             lgLogin.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     try {
+                        //Send authentication request
                         loginUser(lgUsername.getText(), lgPassword.getPassword());
                     } catch(Exception loginException) {
                         loginException.printStackTrace();
@@ -205,6 +212,7 @@ public class Client {
             buttons.add(lgRegister);
             lgRegister.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    //Swap out the login panel for the register panel
                     cont.remove(loginPanel);
                     cont.add(registerPanel);
                     pack();
@@ -293,11 +301,14 @@ public class Client {
             registerPanel.add(buttons,gc);
         }
 
+
+        //Sends the authentication request to the server
         public void loginUser(String username, char[] password) throws Exception{
             out.writeObject(new Message().new UserAuthRequest(username, password));
             this.setVisible(false);
         }
 
+        //Sends registration request to the server
         public void registerUser(String firstName, String lastName, String username, char[] password) throws Exception{
             System.out.println("Sending registration request...");
             out.writeObject(new Message().new UserRegistrationRequest(firstName, lastName, username, password));
@@ -325,6 +336,8 @@ public class Client {
         JTextArea brDescription;
         JTextField brSeller;
         JTextField brBidAmount;
+        JLabel brHighestBid;
+        JButton showMyBids;
 
         //ITEMS WINDOW VARIABLES
         JList<Item> iwItems;
@@ -399,10 +412,23 @@ public class Client {
                 }
             });
             gc.anchor = GridBagConstraints.FIRST_LINE_START;
-            cat.setPreferredSize(new Dimension(176, 760));
+            cat.setPreferredSize(new Dimension(176, 200));
             gc.gridx = 0;
             gc.gridy = 0;
-            dashboard.add(cat, gc);
+
+            JPanel filters = new JPanel();
+            filters.setPreferredSize(new Dimension(176, 760));
+            filters.add(cat);
+
+            filters.add(showMyBids = new JButton("My Bids"));
+            showMyBids.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showBidReport();
+                }
+            });
+
+            dashboard.add(filters, gc);
 
             brItemList = new JList();
             JScrollPane items = new JScrollPane(brItemList);
@@ -520,6 +546,11 @@ public class Client {
             brBidOptions.add(bid);
             cgc.anchor = GridBagConstraints.LAST_LINE_END;
             brDetails.add(brBidOptions, cgc);
+
+            cgc.gridx = 0;
+            cgc.gridy = 8;
+            cgc.gridwidth = 2;
+            brDetails.add(brHighestBid = new JLabel(""));
 
             gc.gridx = 2;
             gc.gridy = 0;
@@ -712,7 +743,9 @@ public class Client {
             try {
                 out.writeObject(new Message().new ItemRequest(brCategories.getSelectedValue()));
                 System.out.println("Attempting to get items");
+                //Using sleep is not ideal, but I did not have time to properly handle blocking
                 sleep(1000);
+                //By the time the sleep has elapsed, the variable has been updates by the server
                 brItemList.setModel(new ItemListModel(currentDispItems));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -723,12 +756,15 @@ public class Client {
         public void editExistingItem(Item item) {
             item.setDescription(iwDescription.getText());
             try {
+                //Each change to an item is saved as a separate item, to have having to remove
+                //bits from my persistance files
                 PersistanceLayer.addItem(item);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
+        //Gets all the items sold by a specific user
         public void getUserItems(int userID) {
             try {
                 out.writeObject(new Message().new ItemRequestByUser(userID));
@@ -745,10 +781,14 @@ public class Client {
         }
 
         public void displayItemInfo() {
+            //Populates the UI with the data from the selected item
             if(selectedBrowseItem != null) {
                 brTitle.setText(selectedBrowseItem.getTitle());
                 if(!selectedBrowseItem.getBids().isEmpty()) {
                     brCurrBid.setText("Current Bid: " + String.valueOf(selectedBrowseItem.getHighestBid().getAmount()));
+                    if(selectedBrowseItem.getHighestBid().getBidderID() == loggedUser.getUserID()) {
+                        brHighestBid.setText("You have the highest bid!");
+                    }
                 }
                 else {
                     brCurrBid.setText("Reserve Price: " + String.valueOf(selectedBrowseItem.getReservePrice()));
@@ -756,10 +796,62 @@ public class Client {
                 brStartTime.setText(selectedBrowseItem.getStartTime().toString());
                 brEndTime.setText(selectedBrowseItem.getEndTime().toString());
                 brDescription.setText(selectedBrowseItem.getDescription());
-                //brBidOptions.setVisible(true);
-                //seller.setText(selectedBrowseItem.getSeller().getUsername());
 
             }
+        }
+
+
+        //The bid report shows the user all the items that they have bid on. It will also tell them if they
+        //are being outbid
+        public void showBidReport() {
+            try {
+                out.writeObject(new Message().new BiddedItemRequest(loggedUser.getUserID()));
+                sleep(1000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            Container cont;
+            JTextArea area;
+
+            JFrame frame = new JFrame("Bids Report");
+            cont = frame.getContentPane();
+            frame.setPreferredSize(new Dimension(600, 800));
+
+            area = new JTextArea();
+            JScrollPane areaPane = new JScrollPane(area);
+            area.setPreferredSize(new Dimension(600, 800));
+            area.setWrapStyleWord(true);
+            area.setLineWrap(true);
+            area.setEditable(false);
+
+            for(Item item : biddedItems) {
+                if(item.getHighestBid().equals(item.getHighestBidByUser(loggedUser.getUserID()))) {
+                    Bid bid = item.getHighestBid();
+                    if(item.getStatus() == 1) {
+                        area.append(String.format("Item %d: %s - You are currently winning this bid at £%d\n", item.getID(), item.getTitle(), bid.getAmount()));
+                    } else {
+                        area.append(String.format("Item %d: %s - You have won this bid at £%d\n", item.getID(), item.getTitle(), bid.getAmount()));
+                    }
+                }else {
+                    Bid bid = item.getHighestBidByUser(loggedUser.getUserID());
+                    if(item.getStatus() == 1) {
+                        area.append(String.format("Item %d: %s - You bid on this item earlier, but aren't winning! The current bid is £%d\n", item.getID(), item.getTitle(), item.getHighestBid().getAmount()));
+                    } else {
+                        area.append(String.format("Item %d: %s - You bid on this item earlier, but unfortunately it has been sold.\n", item.getID(), item.getTitle()));
+                    }
+                }
+            }
+
+            cont.add(areaPane);
+            frame.pack();
+            frame.setVisible(true);
+
+
+
+
+
         }
 
         public void placeBid() {
@@ -780,6 +872,7 @@ public class Client {
             iwEdit.setEnabled(true);
         }
 
+        //Clears UI elements so that the user can add a new item
         public void newItemSetup() {
             editingItem = true;
             iwCurrEdit = null;
@@ -809,6 +902,7 @@ public class Client {
             iwTimeNow.setEnabled(false);
         }
 
+        //A lot of the validation for submitting a new item is done clientside
         public void submitNewItem(){
             if(iwTitle.getText() != null && !iwTitle.getText().equals("")) {
                 if(!iwCategory.getSelectedItem().equals("All")) {
@@ -824,6 +918,7 @@ public class Client {
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
+                                        //User feedback provided for all eventualities
                                     } else {
                                         JOptionPane.showMessageDialog(null, "The end date must be in the future!");
                                     }
@@ -847,8 +942,6 @@ public class Client {
             }
         }
 
-
-
         public Boolean isStringInteger(String string) {
             try {
                 Integer.parseInt(string);
@@ -859,6 +952,8 @@ public class Client {
             return false;
         }
 
+        //List models had to be used for my lists because it was the only way I could have the
+        //list support my custom classes.
         class ItemListModel extends AbstractListModel<Item> {
 
             public ArrayList<Item> modelItem;

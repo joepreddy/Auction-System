@@ -5,6 +5,11 @@ import java.util.function.BooleanSupplier;
 /**
  * Created by Joe on 19/04/2016.
  */
+
+//The reason for having different message classes is so they can be easily
+    //indistinguishable by the client and server. It also allows for different messages
+    //to carry different types of data
+
 public class Message implements Serializable{
     class UserAuthRequest extends Message {
         String username;
@@ -163,6 +168,22 @@ public class Message implements Serializable{
         public ItemListingRequestResponse(Boolean successful, String info) {
             this.successful = successful;
             this.info = info;
+        }
+    }
+
+    class BiddedItemRequest extends Message {
+        int userID;
+
+        public BiddedItemRequest(int userID) {
+            this.userID = userID;
+        }
+    }
+
+    class BiddedItemRequestResponse extends Message {
+        ArrayList<Item> items;
+
+        public BiddedItemRequestResponse(ArrayList<Item> items) {
+            this.items = items;
         }
     }
 

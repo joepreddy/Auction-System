@@ -17,11 +17,12 @@ public class Comms extends Thread{
 
     public void run(){
         try {
+            //Sets up sockets to send messages back forth to client
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream((socket.getInputStream()));
 
             while(true) {
-                //System.out.println("Detected new client: Establishing connection!");
+                //Perpetual loop checks the message type and sends back server responses
                 if(!connected){out.writeObject(new Message().new ConnectionRequest());}
                 try {
                     Message msg = (Message)in.readObject();
@@ -30,9 +31,7 @@ public class Comms extends Thread{
                         if (((Message.ConnectionRequest) msg).successful) {
                             System.out.println("Connected!");
                             connected = true;
-
                         }
-                        //return;
                     }
                     else if(msg instanceof  Message.UserAuthRequest) {
                         System.out.println("Received authentication request...");
@@ -63,7 +62,9 @@ public class Comms extends Thread{
                     else if(msg instanceof  Message.ItemListingRequest) {
                         out.writeObject(Server.listItem((Message.ItemListingRequest)msg));
                     }
-                    //return;
+                    else if(msg instanceof Message.BiddedItemRequest) {
+                        out.writeObject(Server.getBiddedItems((Message.BiddedItemRequest)msg));
+                    }
                 } catch (Exception e){
                     System.out.println("Connection Lost!");
                     break;

@@ -10,6 +10,9 @@ import java.util.Iterator;
  */
 public class PersistanceLayer {
 
+    //I use the gson library to turn my objects in json format. The resulting files do not follow
+    //json format precisely, but can easily be changed back into objects using the library.
+
     private static Gson gson = new Gson();
     private static File users = new File("users.json");
     private static File items = new File("items.json");
@@ -65,6 +68,10 @@ public class PersistanceLayer {
             BufferedReader br = new BufferedReader(new FileReader(items));
 
             String line;
+
+            //Whenever an item is updated, it is added to the file. This results in duplicates
+            //in the file, which are handled on load by casting out all but the most recent object
+
             while((line = br.readLine()) != null) {
                 Item newItem = gson.fromJson(line, Item.class);
                 for(Iterator<Item> it = itemsSet.iterator(); it.hasNext();) {
@@ -93,24 +100,6 @@ public class PersistanceLayer {
         BufferedWriter bw = new BufferedWriter(fw);
         bw.write(bidData+"\n");
         bw.close();
-    }
-
-    public static ArrayList<Bid> loadAllBids() {
-        ArrayList<Bid> bidsSet = new ArrayList<>();
-
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(bids));
-
-            String line;
-            while((line=br.readLine()) != null) {
-                bidsSet.add(gson.fromJson(line, Bid.class));
-            }
-
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        }
-
-        return bidsSet;
     }
 
 

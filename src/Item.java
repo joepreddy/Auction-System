@@ -5,7 +5,7 @@ import java.util.*;
  * Created by Joe on 01/05/2016.
  */
 public class Item implements Serializable{
-    private static String[] categories = {"All", "Fashion", "Home and Garden", "Electronics", "Leisure", "Collectables", "Health and Beauty", "Motors"};
+    private static String[] categories = {"Fashion", "Home and Garden", "Electronics", "Leisure", "Collectables", "Health and Beauty", "Motors"};
 
     private int id;
     private String title;
@@ -17,25 +17,6 @@ public class Item implements Serializable{
     private Date endTime;
     private int status; //0=Not Active Yet, 1 = Active, 2=Expired
     public ArrayList<Bid> bids = new ArrayList<Bid>();
-    //private LinkedHashMap<Integer, Integer> bids = new LinkedHashMap<>();
-
-    /*public Item(String title, String description, String category){
-        this.title = title;
-        this.description = description;
-        this.category = category;
-    }*/
-
-    /*public Item() {
-        title = "Test Item";
-        description = "Test Description";
-        category = "Home and Garden";
-        sellerID = 1;
-        startTime = new Date();
-        endTime = new Date();
-        bids = new LinkedHashMap<>();
-        bids.put(2, 200);
-        bids.put(3, 300);
-    }*/
 
     public Item(String title, String description, String category, int sellerID, int reservePrice, Date startTime, Date endTime) {
         this.title = title;
@@ -74,7 +55,6 @@ public class Item implements Serializable{
     public Date getStartTime(){return startTime;}
     public Date getEndTime() {return endTime;}
     public ArrayList<Bid>  getBids() {return bids;}
-    //public LinkedHashMap<Integer, Integer> getBids(){return bids;}
     public int getStatus(){return status;}
     public int getID(){return id;}
 
@@ -94,21 +74,24 @@ public class Item implements Serializable{
 
     }
 
-    /*public Map.Entry<Integer, Integer> getHighestBid() {
-        Map.Entry<Integer, Integer> max = null;
-        for(Map.Entry<Integer, Integer> entry : bids.entrySet()) {
-            if(max == null || entry.getValue() > max.getValue()) {
-                max = entry;
-            }
-        }
-        return max;
-    }*/
-
     public Bid getHighestBid() {
         Bid max = null;
         for(Bid bid : bids) {
             if(max == null || bid.getAmount() > max.getAmount()) {
                 max = bid;
+            }
+        }
+        return max;
+    }
+
+    //
+    public Bid getHighestBidByUser(int userID) {
+        Bid max = null;
+        for(Bid bid : bids) {
+            if(bid.getBidderID() == userID) {
+                if(max == null || bid.getAmount() > max.getAmount()) {
+                    max = bid;
+                }
             }
         }
         return max;

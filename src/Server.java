@@ -9,39 +9,28 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static java.lang.Thread.currentThread;
-import static java.lang.Thread.sleep;
-
-/**
- * Created by Joe on 19/04/2016.
- */
 public class Server {
 
+    //Server keeps track of all users and items at all times
     private static HashSet<User> users = new HashSet<User>();
-    private static HashSet<Client> clients = new HashSet<Client>();
     private static ArrayList<Item> items = new ArrayList<Item>();
     private static ServerSocket listener;
     private static ServerGUI gui = new ServerGUI();
 
-
-
-    public HashSet getClients() {return clients;}
-
-
     public Server() throws Exception{
         System.out.println("Starting server...");
         gui.log("Starting server...");
+        //Server uses the PersistanceLayer to load users and itoms from files into memory
         users = PersistanceLayer.loadAllUsers();
-        //items.add(new Item());
         items = PersistanceLayer.loadAllItems();
-        //PersistanceLayer.addItem(new Item());
+        //Launches a listener onto the same port that the client will connect to
         listener = new ServerSocket(1224);
         try {
             while (true) {
                 System.out.println("Server listening...");
                 gui.log("New comms thread launched, looking for a client to connect to...");
+                //Runs a threaded comms class to run between server and client
                 new Comms(listener.accept()).start();
-                System.out.println("Connection established...");
                 gui.log("Connection to client established...");
             }
 
@@ -63,6 +52,9 @@ public class Server {
     public static Message.UserAuthResponse authenticateUser(Message.UserAuthRequest request) {
         for(User u : users) {
             if(u.getUsername().equals(request.username)) {
+                //User is authenticated using a username in and password
+                //I hate the fact that the password is in plain text, but didn't have time to hash it
+                //Goes without saying, don't use any real password for the system yet
                 if(Arrays.equals(u.getPassword(), request.password)) {
                     gui.log("Authenticated user: " + u.getUserID() + ", " + u.getUsername());
                     return new Message().new UserAuthResponse(u, true);
@@ -78,20 +70,23 @@ public class Server {
 
     public static Message.UserRegistrationResponse registerUser(Message.UserRegistrationRequest request) {
         for(User u : users) {
+            //Preventing duplicate usernames
             if(u.getUsername().equals(request.username)) {
                 return new Message().new UserRegistrationResponse(false, "Username already in use!");
             }
         }
+        //The user ID is always the number of users +1 for simplicity sake
         User user = new User(request.firstName, request.lastName, request.username, request.password, users.size()+1);
         users.add(user);
         try {
+            //User is added to file for persistance
             PersistanceLayer.addUser(user);
         } catch (Exception e) {
             System.out.println(e);
         }
         gui.log("Registered new user: " + user.getUserID() + ", "  + user.getUsername());
+        //Notifies the client that the user has successfully been registered
         return new Message().new UserRegistrationResponse(true, user);
-        //return new Message().new UserRegistrationResponse(false, "Unknown Error!");
     }
 
     public static Message.ItemRequestResponse requestItems(Message.ItemRequest request) {
@@ -101,6 +96,7 @@ public class Server {
         else {
             ArrayList<Item> tempItems = new ArrayList<Item>();
             for(Item item : items) {
+                //Only sends the items in the category requested
                 if(item.getCategory().equals(request.category)) {
                     tempItems.add(item);
                 }
@@ -112,11 +108,9 @@ public class Server {
     public static Message.ItemBidRequestResponse processItemBid(Message.ItemBidRequest request) {
 
         Item currentItem = null;
-        /*for(Item item : items) {
-            if(item.getID() == request.bidItem.getID()) {
-                currentItem = item;
-            }
-        }*/
+        //Using an iterator prevents concurrency exceptions
+        //This loop removes the item from the list so that the bid can be added
+        //then the item added back
         for(Iterator<Item> it = items.iterator(); it.hasNext();){
             Item item = it.next();
             if(item.getID() == request.bidItem.getID()) {
@@ -125,8 +119,8 @@ public class Server {
             }
         }
 
-
-
+        //Bids need server-side authentication in case the user is not seeing an updated version of the item
+        //If there are no bids, then the reserve price acts as the current highest bid
         if(currentItem.getBids().isEmpty()) {
             if(request.bidAmount > currentItem.getReservePrice()) {
                 if(currentItem.getStatus() == 1) {
@@ -181,6 +175,7 @@ public class Server {
         }
     }
 
+    //Sends the client all items listed by the requested user
     public static Message.ItemRequestByUserResponse requestItemByUser(Message.ItemRequestByUser request) {
         ArrayList<Item> userItems = new ArrayList<>();
         for(Item item : items) {
@@ -207,6 +202,24 @@ public class Server {
         return new Message().new ItemListingRequestResponse(true, request.listingItem);
     }
 
+    public static Message.BiddedItemRequestResponse getBiddedItems(Message.BiddedItemRequest request) {
+        //Gets all the items a specific user has bidded on
+
+        ArrayList<Item> temp = new ArrayList<Item>();
+
+        for(Item item : items) {
+            for(Bid bid : item.getBids()) {
+                if(bid.getBidderID() == request.userID) {
+                    temp.add(item);
+                    break;
+                }
+            }
+        }
+
+        return new Message().new BiddedItemRequestResponse(temp);
+    }
+
+    //Handles the opening/expiration of items. Called every second
     public static void verifyItemStatus() {
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Calendar now = Calendar.getInstance();
@@ -306,6 +319,7 @@ public class Server {
             pack();
             setVisible(true);
 
+            //Timer runs the snazzy little clock on the server gui, as well as verifying item statuses
             new Timer(1000, new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
