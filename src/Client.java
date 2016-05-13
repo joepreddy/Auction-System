@@ -80,10 +80,10 @@ public class Client {
                 //Confirm registration
                 else if(msg instanceof Message.UserRegistrationResponse) {
                     if(((Message.UserRegistrationResponse) msg).successful) {
-                        System.out.println("User registered successfully");
+                        JOptionPane.showMessageDialog(null, "User registered successfully");
                     }
                     else {
-                        System.out.println(((Message.UserRegistrationResponse) msg).info);
+                        JOptionPane.showMessageDialog(null,((Message.UserRegistrationResponse) msg).info);
                     }
                 }
                 //Return requested items
@@ -92,7 +92,7 @@ public class Client {
                         currentDispItems = ((Message.ItemRequestResponse) msg).items;
                     }
                     else {
-                        System.out.println(((Message.ItemRequestResponse) msg).info);
+                        JOptionPane.showMessageDialog(null,((Message.ItemRequestResponse) msg).info);
                     }
                 }
                 //Process bid
@@ -276,6 +276,9 @@ public class Client {
                 public void actionPerformed(ActionEvent e) {
                     try {
                         registerUser(rgFirstName.getText(), rgLastName.getText(), rgUsername.getText(), rgPassword.getPassword());
+                        cont.remove(registerPanel);
+                        cont.add(loginPanel);
+                        pack();
                     } catch(Exception ex) {
                         System.out.println(e);
                     }
@@ -793,6 +796,7 @@ public class Client {
                 else {
                     brCurrBid.setText("Reserve Price: " + String.valueOf(selectedBrowseItem.getReservePrice()));
                 }
+                brCategory.setText(selectedBrowseItem.getCategory());
                 brStartTime.setText(selectedBrowseItem.getStartTime().toString());
                 brEndTime.setText(selectedBrowseItem.getEndTime().toString());
                 brDescription.setText(selectedBrowseItem.getDescription());
