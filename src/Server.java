@@ -111,11 +111,17 @@ public class Server {
         //Using an iterator prevents concurrency exceptions
         //This loop removes the item from the list so that the bid can be added
         //then the item added back
-        for(Iterator<Item> it = items.iterator(); it.hasNext();){
+        /*for(Iterator<Item> it = items.iterator(); it.hasNext();){
             Item item = it.next();
             if(item.getID() == request.bidItem.getID()) {
                 currentItem = item;
                 it.remove();
+            }
+        }*/
+
+        for(Item item : items) {
+            if(item.getID() == request.bidItem.getID()) {
+                currentItem = item;
             }
         }
 
@@ -124,21 +130,26 @@ public class Server {
         if(currentItem.getBids().isEmpty()) {
             if(request.bidAmount > currentItem.getReservePrice()) {
                 if(currentItem.getStatus() == 1) {
-                    if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
-                        if(request.bidder.getUserID() != currentItem.getSellerID()) {
-                            try {
-                                items.add(currentItem);
-                                gui.log("Bid placed on item " + currentItem.getID() + " by user " + request.bidder.getUserID() + " of amount " + request.bidAmount);
-                                PersistanceLayer.addItem(currentItem);
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                    if(request.bidder.getUserID() != currentItem.getSellerID()) {
+                        if(currentItem.getBids().isEmpty() || currentItem.getHighestBid().getBidderID() != request.bidder.getUserID()) {
+                            if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)) {
+                                try {
+                                    //items.add(currentItem);
+                                    gui.log("Bid placed on item " + currentItem.getID() + " by user " + request.bidder.getUserID() + " of amount " + request.bidAmount);
+                                    PersistanceLayer.addItem(currentItem);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                return new Message().new ItemBidRequestResponse(true, currentItem);
+                        } else {
+                                return new Message().new ItemBidRequestResponse(false, "You already have the highest bid on this item!");
                             }
-                            return new Message().new ItemBidRequestResponse(true, currentItem);
+
                         }else {
-                            return new Message().new ItemBidRequestResponse(false, "You may not bid on your own item!");
+                            return new Message().new ItemBidRequestResponse(false, "There was a problem authenticating this bid with the server!");
                         }
                     } else {
-                        return new Message().new ItemBidRequestResponse(false, "There was a problem authenticating this bid with the server!");
+                        return new Message().new ItemBidRequestResponse(false, "You may not bid on your own item!");
                     }
                 } else {
                     return new Message().new ItemBidRequestResponse(false, "This listing has either expired, or has not yet started!");
@@ -150,19 +161,23 @@ public class Server {
         } else if(request.bidAmount > currentItem.getHighestBid().getAmount()) {
             if(request.bidder.getUserID() != currentItem.getSellerID()) {
                 if(currentItem.getStatus() == 1) {
-                    if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)){
-                        try {
-                            items.add(currentItem);
-                            gui.log("Bid placed on item " + currentItem.getID() + " by user " + request.bidder.getUserID() + " of amount " + request.bidAmount);
-                            PersistanceLayer.addItem(currentItem);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                    if(currentItem.getBids().isEmpty() || currentItem.getHighestBid().getBidderID() != request.bidder.getUserID()) {
+                        if(currentItem.addBid(request.bidder.getUserID(), request.bidAmount)){
+                            try {
+                                //items.add(currentItem);
+                                gui.log("Bid placed on item " + currentItem.getID() + " by user " + request.bidder.getUserID() + " of amount " + request.bidAmount);
+                                PersistanceLayer.addItem(currentItem);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
 
-                        System.out.println("Returning " + currentItem.toString());
-                        return new Message().new ItemBidRequestResponse(true, currentItem);
+                            System.out.println("Returning " + currentItem.toString());
+                            return new Message().new ItemBidRequestResponse(true, currentItem);
+                    }else {
+                            return new Message().new ItemBidRequestResponse(false, "There was a problem processing your bid on the server.");
+                        }
                     } else {
-                        return new Message().new ItemBidRequestResponse(false, "There was a problem processing your bid on the server.");
+                        return new Message().new ItemBidRequestResponse(false, "You already have the highest bid on this item!");
                     }
                 } else {
                     return new Message().new ItemBidRequestResponse(false, "This listing has either expired, or has not yet started!");
